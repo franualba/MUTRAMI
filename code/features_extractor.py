@@ -7,7 +7,17 @@ midi_input_2 = "../midi_files/mel2.mid"
 json_output = "./output.json"
 midi_output = "../midi_files/output_midi.mid"
 
-# Obtain notes from MIDI file
+# Extract pitches from MIDI file
+def midi_to_relative_pitch_sequence(midi_file_path):
+    midi_data = pretty_midi.PrettyMIDI(midi_file_path)
+    pitch_sequence = [note.pitch for note in midi_data.instruments[0].notes]
+    relative_pitch_sequence = [pitch_sequence[i+1] - pitch_sequence[i] for i in range(len(pitch_sequence)-1)]
+    print(f"Number of instruments: {len(midi_data.instruments)}")
+    print(f"Lower note: {min(pitch_sequence)}")
+    print(f"Higher note: {max(pitch_sequence)}")
+    return relative_pitch_sequence
+
+# Extract notes from MIDI file
 def midi_to_notes(midi_file_path):
     midi_data = pretty_midi.PrettyMIDI(midi_file_path)
     notes = []
@@ -48,9 +58,13 @@ def notes_to_midi(notes, output_path):
     midi_data.write(output_path)
 
 
-# notes = midi_to_notes(midi_input_1)
-# save_notes_to_json(notes, json_output)
+# Testing zone
 
-notes = json_to_notes(json_output)
-notes_to_midi(notes, midi_output)
+# notes = midi_to_notes(midi_input_2)
+# notes_to_json(notes, json_output)
+
+# notes = json_to_notes(json_output)
+# notes_to_midi(notes, midi_output)
+
+# midi_to_relative_pitch_sequence(midi_input_1)
 
