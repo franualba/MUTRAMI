@@ -58,7 +58,7 @@ def notes_to_midi(notes, output_path):
     midi_data.write(output_path)
 
 
-# Testing zone
+### Testing zone ###
 
 # notes = midi_to_notes(midi_input_2)
 # notes_to_json(notes, json_output)
