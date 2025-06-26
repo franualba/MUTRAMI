@@ -1,6 +1,8 @@
 import zlib
 import random
 import numpy as np
+from features_extractor import print_midi_info
+from features_extractor import replace_pitches_in_midi_file
 from features_extractor import midi_to_relative_pitch_sequence
 
 midi_input_1 = "../midi_files/mel1.mid"
@@ -79,7 +81,7 @@ def evolve(num_generations):
         # Save new generated population for next iteration
         population1 = sorted_pop
 
-
+    replace_pitches_in_midi_file(population1[0][0], midi_input_1)
     print(f"Best fit after {num_generations} generations: {population1[0][1]}")
 
 
@@ -99,4 +101,5 @@ def evolve(num_generations):
 
 # print(calculate_ncd(seq1, seq2))
 
-# evolve(100)
+# evolve(1000)
+

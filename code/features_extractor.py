@@ -1,5 +1,6 @@
 import json
 import pretty_midi
+import matplotlib.pyplot as plt
 
 midi_input_1 = "../midi_files/mel1.mid"
 midi_input_2 = "../midi_files/mel2.mid"
@@ -7,14 +8,35 @@ midi_input_2 = "../midi_files/mel2.mid"
 json_output = "./output.json"
 midi_output = "../midi_files/output_midi.mid"
 
+def print_midi_info(midi_file_path, plot_histogram = False):
+    midi_data = pretty_midi.PrettyMIDI(midi_file_path)
+    pitch_sequence = [note.pitch for note in midi_data.instruments[0].notes]
+    note_durations = [note.end - note.start for note in midi_data.instruments[0].notes]
+    print(f"Number of instruments: {len(midi_data.instruments)}")
+    print(f"Instrument program value: {midi_data.instruments[0].program}")
+    print(f"Lower note: {min(pitch_sequence)}")
+    print(f"Higher note: {max(pitch_sequence)}")
+    print(f"Avg note duration: {round(sum(note_durations)/len(note_durations), 2)}s")
+    print(f"Tempo: {round(midi_data.estimate_tempo(), 2)}bpm")
+    time_signature_changes = midi_data.time_signature_changes[0]
+    print(f"Time signature: {time_signature_changes.numerator}/{time_signature_changes.denominator}")
+    if (plot_histogram):
+        histogram = midi_data.get_pitch_class_histogram()
+        note_names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+        plt.figure(figsize=(10, 6))
+        plt.bar(note_names, histogram)
+        plt.title('Pitch Class Histogram')
+        plt.xlabel('Pitch Class')
+        plt.ylabel('Relative Frequency')
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        plt.show()
+
 # Extract pitches from MIDI file
 def midi_to_relative_pitch_sequence(midi_file_path):
     midi_data = pretty_midi.PrettyMIDI(midi_file_path)
     pitch_sequence = [note.pitch for note in midi_data.instruments[0].notes]
     relative_pitch_sequence = [pitch_sequence[i+1] - pitch_sequence[i] for i in range(len(pitch_sequence)-1)]
-    print(f"Number of instruments: {len(midi_data.instruments)}")
-    print(f"Lower note: {min(pitch_sequence)}")
-    print(f"Higher note: {max(pitch_sequence)}")
     return relative_pitch_sequence
 
 # Extract notes from MIDI file
@@ -57,6 +79,22 @@ def notes_to_midi(notes, output_path):
     midi_data.instruments.append(instrument)
     midi_data.write(output_path)
 
+# Replace pitches in a given MIDI file with the ones obtained by the genetic algorithm 
+def replace_pitches_in_midi_file(pitch_seq, midi_file_path):
+    midi_base = pretty_midi.PrettyMIDI(midi_file_path)
+    base_notes = midi_base.instruments[0].notes
+    midi_output = pretty_midi.PrettyMIDI()
+    instrument = pretty_midi.Instrument(program = midi_base.instruments[0].program)
+    for i in range(len(pitch_seq)):
+        note = pretty_midi.Note(
+            pitch = pitch_seq[i] + 50,
+            velocity = base_notes[i].velocity,
+            start = base_notes[i].start,
+            end = base_notes[i].end
+        )
+        instrument.notes.append(note)
+    midi_output.instruments.append(instrument)
+    midi_output.write("../midi_files/evolution_output.mid")
 
 ### Testing zone ###
 
@@ -68,3 +106,4 @@ def notes_to_midi(notes, output_path):
 
 # midi_to_relative_pitch_sequence(midi_input_1)
 
+print_midi_info(midi_input_2, True)
