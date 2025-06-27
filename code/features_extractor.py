@@ -106,4 +106,4 @@ def replace_pitches_in_midi_file(pitch_seq, midi_file_path):
 
 # midi_to_relative_pitch_sequence(midi_input_1)
 
-print_midi_info(midi_input_2, True)
+# print_midi_info(midi_input_2, True)

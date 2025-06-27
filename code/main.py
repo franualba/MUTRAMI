@@ -1,6 +1,7 @@
 import zlib
 import random
 import numpy as np
+import matplotlib.pyplot as plt
 from features_extractor import print_midi_info
 from features_extractor import replace_pitches_in_midi_file
 from features_extractor import midi_to_relative_pitch_sequence
@@ -54,11 +55,18 @@ def evolve(num_generations):
     # Calculate fitness value for each individual in the random population
     population1 = [(ind, calculate_fitness(ind, guide_list)) for ind in population0]
 
+    # Track fitness values across generations for plotting
+    fitness_history = []
+
     for i in range(num_generations):
         print(f"Generation number: {i}")
 
         # Sort population by fitness in decreasing order
         sorted_pop = sorted(population1, key = lambda x: -x[1])
+
+        # Store fitness values for current generation
+        current_fitness = [ind[1] for ind in sorted_pop]
+        fitness_history.append(current_fitness)
 
         # Remove the 25% worst individuals
         sorted_pop = sorted_pop[:74]
@@ -81,9 +89,66 @@ def evolve(num_generations):
         # Save new generated population for next iteration
         population1 = sorted_pop
 
+    # Final generation fitness
+    final_sorted_pop = sorted(population1, key=lambda x: -x[1])
+    final_fitness = [ind[1] for ind in final_sorted_pop]
+    fitness_history.append(final_fitness)
+    
+    # Display boxplot of fitness evolution
+    plot_fitness_evolution(fitness_history, 10)
+
     replace_pitches_in_midi_file(population1[0][0], midi_input_1)
     print(f"Best fit after {num_generations} generations: {population1[0][1]}")
 
+def plot_fitness_evolution(fitness_history, step_size = 1):
+    # Filter fitness history based on step size
+    filtered_fitness = fitness_history[::step_size]
+    filtered_generations = list(range(0, len(fitness_history), step_size))
+
+    plt.figure(figsize=(12, 8))
+    
+    # Create boxplot
+    box_plot = plt.boxplot(filtered_fitness, patch_artist=True)
+    
+    # Customize the boxplot appearance
+    colors = plt.cm.viridis(np.linspace(0, 1, len(filtered_fitness)))
+    for patch, color in zip(box_plot['boxes'], colors):
+        patch.set_facecolor(color)
+        patch.set_alpha(0.7)
+    
+    # Customize the plot
+    plt.xlabel('Generation', fontsize=12)
+    plt.ylabel('Fitness Value', fontsize=12)
+    if step_size == 1:
+        plt.title('Evolution of Fitness Values Across Generations', fontsize=14, fontweight='bold')
+    else:
+        plt.title(f'Evolution of Fitness Values (Every {step_size} Generations)', fontsize=14, fontweight='bold')
+    plt.grid(True, alpha=0.3)
+    
+    # Set x-axis ticks to show generation numbers
+    generation_labels = [f'Gen {i}' for i in filtered_generations]
+    plt.xticks(range(1, len(generation_labels) + 1), generation_labels, rotation=45)
+    
+    # Add statistics annotations
+    best_fitness_per_gen = [max(gen_fitness) for gen_fitness in filtered_fitness]
+    mean_fitness_per_gen = [np.mean(gen_fitness) for gen_fitness in filtered_fitness]
+    
+    # Plot trend lines
+    generations_x = range(1, len(filtered_fitness) + 1)
+    plt.plot(generations_x, best_fitness_per_gen, 'r-', linewidth=2, alpha=0.8, label='Best Fitness')
+    plt.plot(generations_x, mean_fitness_per_gen, 'b--', linewidth=2, alpha=0.8, label='Mean Fitness')
+    
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+    
+    # Print summary statistics
+    print("\n=== Fitness Evolution Summary ===")
+    print(f"Initial best fitness: {best_fitness_per_gen[0]:.4f}")
+    print(f"Final best fitness: {best_fitness_per_gen[-1]:.4f}")
+    print(f"Improvement: {best_fitness_per_gen[-1] - best_fitness_per_gen[0]:.4f}")
+    print(f"Initial mean fitness: {mean_fitness_per_gen[0]:.4f}")
+    print(f"Final mean fitness: {mean_fitness_per_gen[-1]:.4f}")
 
 ### Testing zone ###
 
