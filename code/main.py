@@ -1,4 +1,5 @@
 import zlib
+import time
 import random
 import numpy as np
 import matplotlib.pyplot as plt
@@ -54,7 +55,7 @@ def calculate_fitness(ind_seq, guide_seq):
     ncd2 = calculate_ncd(ind_seq, guide_seq[1])
     return 1 - ((0.5 * ncd1) + (0.5 * ncd2))
 
-def evolve_single(num_generations, pop_size, ind_size):
+def evolve_single(num_generations, pop_size, ind_size, strategy=0):
     # Initialize random population
     population0 = generate_random_population(pop_size, ind_size)
 
@@ -74,8 +75,6 @@ def evolve_single(num_generations, pop_size, ind_size):
     upper_bound = int(len(population1)*0.75)
     upper_bound = upper_bound if upper_bound % 2 == 0 else upper_bound + 1
 
-    print(lower_bound, upper_bound)
-
     for i in range(num_generations):
         print(f"Generation number: {i}")
 
@@ -91,7 +90,16 @@ def evolve_single(num_generations, pop_size, ind_size):
 
         # Recombine the 25% best individuals and restore population size
         for j in range(0, lower_bound, 2):
-            recombined = single_point_crossover(sorted_pop[j][0], sorted_pop[j+1][0])
+            # Recombine individuals based on chosen strategy 
+            if strategy == 0:
+                recombined = single_point_crossover(sorted_pop[j][0], sorted_pop[j+1][0])
+            elif strategy == 1:
+                recombined = double_point_crossover(sorted_pop[j][0], sorted_pop[j+1][0])
+            elif strategy == 2:
+                if i <= 200:
+                    recombined = double_point_crossover(sorted_pop[j][0], sorted_pop[j+1][0])
+                else:
+                    recombined = single_point_crossover(sorted_pop[j][0], sorted_pop[j+1][0])
             # Re-calculate fitness value for new recombined individuals
             recombined = [(ind, calculate_fitness(ind, guide_list)) for ind in recombined]
             # Add new individuals to current population
@@ -117,12 +125,25 @@ def evolve_single(num_generations, pop_size, ind_size):
 def evolve_multi(num_runs, plot_step_size, num_generations, pop_size, ind_size):
     all_fitness_histories = []
     best_individuals = []
+    run_times = []
+
+    total_start_time = time.time()
     
     for run in range(num_runs):
         print(f"Run {run + 1}/{num_runs}")
+        
+        run_start_time = time.time()
         fitness_history, best_individual = evolve_single(num_generations, pop_size, ind_size)
+        run_end_time = time.time()
+        
+        run_time = run_end_time - run_start_time
+        run_times.append(run_time)
+
         all_fitness_histories.append(fitness_history)
         best_individuals.append(best_individual)
+    
+    total_end_time = time.time()
+    total_time = total_end_time - total_start_time
     
     # Aggregate fitness data across all runs for plotting
     aggregated_fitness = []
@@ -139,6 +160,14 @@ def evolve_multi(num_runs, plot_step_size, num_generations, pop_size, ind_size):
     best_run_individual = max(best_individuals, key=lambda x: x[1])
     replace_pitches_in_midi_file(best_run_individual[0], midi_input_1)
     print(f"Best fit after {num_generations} generations across {num_runs} runs: {best_run_individual[1]}")
+
+    # Print timing statistics
+    print(f"\n=== Timing Statistics ===")
+    print(f"Total execution time: {total_time:.2f}s ({total_time/60:.2f}min)")
+    print(f"Average time per run: {np.mean(run_times):.2f}s ({np.mean(run_times)/60:.2f}min)")
+    print(f"Fastest run: {min(run_times):.2f}s ({min(run_times)/60:.2f}min)")
+    print(f"Slowest run: {max(run_times):.2f}s ({max(run_times)/60:.2f}min)")
+    print(f"Standard deviation: {np.std(run_times):.2f}s")
 
 def plot_fitness_evolution(fitness_history, step_size = 1):
     # Filter fitness history based on step size
@@ -206,5 +235,5 @@ def plot_fitness_evolution(fitness_history, step_size = 1):
 
 # print(calculate_ncd(seq1, seq2))
 
-evolve_multi(30, 1, 100, 500, 50)
+evolve_multi(30, 10, 1000, 500, 50)
 
