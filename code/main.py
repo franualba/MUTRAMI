@@ -21,6 +21,17 @@ def single_point_crossover(parent1, parent2):
     new_parent2 = parent2[:crossover_point] + parent1[crossover_point:]
     return [new_parent1, new_parent2]
 
+def double_point_crossover(parent1, parent2):
+    length = min(len(parent1), len(parent2))
+    crossover_point1 = random.randint(0, length)
+    crossover_point2 = random.randint(0, length)
+    # Swap values if the end up being reversed
+    if crossover_point1 > crossover_point2:
+        crossover_point1, crossover_point2 = crossover_point2, crossover_point1
+    new_parent1 = parent1[:crossover_point1] + parent2[crossover_point1:crossover_point2] + parent1[crossover_point2:]
+    new_parent2 = parent2[:crossover_point1] + parent1[crossover_point1:crossover_point2] + parent2[crossover_point2:]
+    return [new_parent1, new_parent2]
+
 def generate_random_population(pop_size, ind_length):
     population = []
     for _ in range(pop_size):
@@ -43,9 +54,9 @@ def calculate_fitness(ind_seq, guide_seq):
     ncd2 = calculate_ncd(ind_seq, guide_seq[1])
     return 1 - ((0.5 * ncd1) + (0.5 * ncd2))
 
-def evolve(num_generations):
+def evolve_single(num_generations, pop_size, ind_size):
     # Initialize random population
-    population0 = generate_random_population(100, 50)
+    population0 = generate_random_population(pop_size, ind_size)
 
     # Create guide sequences list
     guide_seq1 = midi_to_relative_pitch_sequence(midi_input_1)
@@ -58,6 +69,13 @@ def evolve(num_generations):
     # Track fitness values across generations for plotting
     fitness_history = []
 
+    lower_bound = int(len(population1)*0.25) 
+    lower_bound = lower_bound if lower_bound % 2 == 0 else lower_bound + 1
+    upper_bound = int(len(population1)*0.75)
+    upper_bound = upper_bound if upper_bound % 2 == 0 else upper_bound + 1
+
+    print(lower_bound, upper_bound)
+
     for i in range(num_generations):
         print(f"Generation number: {i}")
 
@@ -69,10 +87,10 @@ def evolve(num_generations):
         fitness_history.append(current_fitness)
 
         # Remove the 25% worst individuals
-        sorted_pop = sorted_pop[:74]
+        sorted_pop = sorted_pop[:upper_bound]
 
         # Recombine the 25% best individuals and restore population size
-        for j in range(0, 24, 2):
+        for j in range(0, lower_bound, 2):
             recombined = single_point_crossover(sorted_pop[j][0], sorted_pop[j+1][0])
             # Re-calculate fitness value for new recombined individuals
             recombined = [(ind, calculate_fitness(ind, guide_list)) for ind in recombined]
@@ -94,11 +112,33 @@ def evolve(num_generations):
     final_fitness = [ind[1] for ind in final_sorted_pop]
     fitness_history.append(final_fitness)
     
-    # Display boxplot of fitness evolution
-    plot_fitness_evolution(fitness_history, 10)
+    return fitness_history, final_sorted_pop[0]
 
-    replace_pitches_in_midi_file(population1[0][0], midi_input_1)
-    print(f"Best fit after {num_generations} generations: {population1[0][1]}")
+def evolve_multi(num_runs, plot_step_size, num_generations, pop_size, ind_size):
+    all_fitness_histories = []
+    best_individuals = []
+    
+    for run in range(num_runs):
+        print(f"Run {run + 1}/{num_runs}")
+        fitness_history, best_individual = evolve_single(num_generations, pop_size, ind_size)
+        all_fitness_histories.append(fitness_history)
+        best_individuals.append(best_individual)
+    
+    # Aggregate fitness data across all runs for plotting
+    aggregated_fitness = []
+    for gen in range(len(all_fitness_histories[0])):
+        gen_fitness = []
+        for run_fitness in all_fitness_histories:
+            gen_fitness.extend(run_fitness[gen])
+        aggregated_fitness.append(gen_fitness)
+    
+    # Display boxplot of fitness evolution
+    plot_fitness_evolution(aggregated_fitness, plot_step_size)
+    
+    # Find the best individual across all runs
+    best_run_individual = max(best_individuals, key=lambda x: x[1])
+    replace_pitches_in_midi_file(best_run_individual[0], midi_input_1)
+    print(f"Best fit after {num_generations} generations across {num_runs} runs: {best_run_individual[1]}")
 
 def plot_fitness_evolution(fitness_history, step_size = 1):
     # Filter fitness history based on step size
@@ -120,9 +160,9 @@ def plot_fitness_evolution(fitness_history, step_size = 1):
     plt.xlabel('Generation', fontsize=12)
     plt.ylabel('Fitness Value', fontsize=12)
     if step_size == 1:
-        plt.title('Evolution of Fitness Values Across Generations', fontsize=14, fontweight='bold')
+        plt.title('Evolution of Fitness Values Across Generations (Multiple Runs)', fontsize=14, fontweight='bold')
     else:
-        plt.title(f'Evolution of Fitness Values (Every {step_size} Generations)', fontsize=14, fontweight='bold')
+        plt.title(f'Evolution of Fitness Values (Every {step_size} Generations, Multiple Runs)', fontsize=14, fontweight='bold')
     plt.grid(True, alpha=0.3)
     
     # Set x-axis ticks to show generation numbers
@@ -166,5 +206,5 @@ def plot_fitness_evolution(fitness_history, step_size = 1):
 
 # print(calculate_ncd(seq1, seq2))
 
-# evolve(1000)
+evolve_multi(30, 1, 100, 500, 50)
 
