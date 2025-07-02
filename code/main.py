@@ -122,7 +122,7 @@ def evolve_single(num_generations, pop_size, ind_size, strategy=0):
     
     return fitness_history, final_sorted_pop[0]
 
-def evolve_multi(num_runs, plot_step_size, num_generations, pop_size, ind_size):
+def evolve_multi(num_runs, plot_step_size, num_generations, pop_size, ind_size, strategy):
     all_fitness_histories = []
     best_individuals = []
     run_times = []
@@ -133,7 +133,7 @@ def evolve_multi(num_runs, plot_step_size, num_generations, pop_size, ind_size):
         print(f"Run {run + 1}/{num_runs}")
         
         run_start_time = time.time()
-        fitness_history, best_individual = evolve_single(num_generations, pop_size, ind_size)
+        fitness_history, best_individual = evolve_single(num_generations, pop_size, ind_size, strategy)
         run_end_time = time.time()
         
         run_time = run_end_time - run_start_time
@@ -147,18 +147,16 @@ def evolve_multi(num_runs, plot_step_size, num_generations, pop_size, ind_size):
     
     # Aggregate fitness data across all runs for plotting
     aggregated_fitness = []
-    for gen in range(len(all_fitness_histories[0])):
+    for gen in range(num_generations):
         gen_fitness = []
         for run_fitness in all_fitness_histories:
             gen_fitness.extend(run_fitness[gen])
         aggregated_fitness.append(gen_fitness)
-    
-    # Display boxplot of fitness evolution
-    plot_fitness_evolution(aggregated_fitness, plot_step_size)
-    
+        
     # Find the best individual across all runs
     best_run_individual = max(best_individuals, key=lambda x: x[1])
-    replace_pitches_in_midi_file(best_run_individual[0], midi_input_1)
+    replace_pitches_in_midi_file(best_run_individual[0], midi_input_1, strategy)
+    print("Created MIDI file using best individual's pitches")
     print(f"Best fit after {num_generations} generations across {num_runs} runs: {best_run_individual[1]}")
 
     # Print timing statistics
@@ -169,7 +167,12 @@ def evolve_multi(num_runs, plot_step_size, num_generations, pop_size, ind_size):
     print(f"Slowest run: {max(run_times):.2f}s ({max(run_times)/60:.2f}min)")
     print(f"Standard deviation: {np.std(run_times):.2f}s")
 
-def plot_fitness_evolution(fitness_history, step_size = 1):
+    if plot_step_size == 0:
+        return aggregated_fitness
+    else:
+        plot_fitness_evolution(aggregated_fitness, plot_step_size)
+
+def plot_fitness_evolution(fitness_history, step_size=1):
     # Filter fitness history based on step size
     filtered_fitness = fitness_history[::step_size]
     filtered_generations = list(range(0, len(fitness_history), step_size))
@@ -184,7 +187,7 @@ def plot_fitness_evolution(fitness_history, step_size = 1):
     for patch, color in zip(box_plot['boxes'], colors):
         patch.set_facecolor(color)
         patch.set_alpha(0.7)
-    
+
     # Customize the plot
     plt.xlabel('Generation', fontsize=12)
     plt.ylabel('Fitness Value', fontsize=12)
@@ -193,11 +196,11 @@ def plot_fitness_evolution(fitness_history, step_size = 1):
     else:
         plt.title(f'Evolution of Fitness Values (Every {step_size} Generations, Multiple Runs)', fontsize=14, fontweight='bold')
     plt.grid(True, alpha=0.3)
-    
+
     # Set x-axis ticks to show generation numbers
     generation_labels = [f'Gen {i}' for i in filtered_generations]
     plt.xticks(range(1, len(generation_labels) + 1), generation_labels, rotation=45)
-    
+
     # Add statistics annotations
     best_fitness_per_gen = [max(gen_fitness) for gen_fitness in filtered_fitness]
     mean_fitness_per_gen = [np.mean(gen_fitness) for gen_fitness in filtered_fitness]
@@ -207,10 +210,6 @@ def plot_fitness_evolution(fitness_history, step_size = 1):
     plt.plot(generations_x, best_fitness_per_gen, 'r-', linewidth=2, alpha=0.8, label='Best Fitness')
     plt.plot(generations_x, mean_fitness_per_gen, 'b--', linewidth=2, alpha=0.8, label='Mean Fitness')
     
-    plt.legend()
-    plt.tight_layout()
-    plt.show()
-    
     # Print summary statistics
     print("\n=== Fitness Evolution Summary ===")
     print(f"Initial best fitness: {best_fitness_per_gen[0]:.4f}")
@@ -218,6 +217,38 @@ def plot_fitness_evolution(fitness_history, step_size = 1):
     print(f"Improvement: {best_fitness_per_gen[-1] - best_fitness_per_gen[0]:.4f}")
     print(f"Initial mean fitness: {mean_fitness_per_gen[0]:.4f}")
     print(f"Final mean fitness: {mean_fitness_per_gen[-1]:.4f}")
+
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+def multi_strategy_test(num_runs, plot_step_size, num_generations, pop_size, ind_size):
+    aggregated_fitnesses_per_strategy = []
+    for i in range(3):
+        aggregated_fitness = evolve_multi(num_runs, plot_step_size, num_generations, pop_size, ind_size, i)
+        aggregated_fitnesses_per_strategy.append(aggregated_fitness)
+    
+    best_fitnesses_per_strategy = []
+    for strategy in aggregated_fitnesses_per_strategy:
+        best_fitnesses = [max(strategy[j]) for j in range(len(strategy))]
+        best_fitnesses_per_strategy.append(best_fitnesses)
+    
+    # Setup plotting
+    plt.figure(figsize=(12,8))
+    plt.xlabel('Generation', fontsize=12)
+    plt.ylabel('Fitness Value', fontsize=12)
+    plt.title('Evolution of Fitness Values Across Generations (Multiple Runs)', fontsize=14, fontweight='bold')
+    plt.grid(True, alpha=0.3)
+
+    generations_x = range(1, len(aggregated_fitnesses_per_strategy[0]) + 1)
+    k = 1
+    for strategy_fitnesses in best_fitnesses_per_strategy: 
+        plt.plot(generations_x, strategy_fitnesses, linewidth=2, alpha=0.8, label=f"Best Fitness Strategy {k}")
+        k += 1
+
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
 
 ### Testing zone ###
 
@@ -235,5 +266,6 @@ def plot_fitness_evolution(fitness_history, step_size = 1):
 
 # print(calculate_ncd(seq1, seq2))
 
-evolve_multi(30, 10, 1000, 500, 50)
+# evolve_multi(30, 10, 1000, 500, 50)
 
+multi_strategy_test(30, 0, 1000, 500, 50)
