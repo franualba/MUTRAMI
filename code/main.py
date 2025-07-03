@@ -55,7 +55,7 @@ def calculate_fitness(ind_seq, guide_seq):
     ncd2 = calculate_ncd(ind_seq, guide_seq[1])
     return 1 - ((0.5 * ncd1) + (0.5 * ncd2))
 
-def evolve_single(num_generations, pop_size, ind_size, strategy=0):
+def evolve_single(num_generations, pop_size, ind_size, strategy=0, random=False):
     # Initialize random population
     population0 = generate_random_population(pop_size, ind_size)
 
@@ -76,7 +76,7 @@ def evolve_single(num_generations, pop_size, ind_size, strategy=0):
     upper_bound = upper_bound if upper_bound % 2 == 0 else upper_bound + 1
 
     for i in range(num_generations):
-        print(f"Generation number: {i}")
+        # print(f"Generation number: {i}")
 
         # Sort population by fitness in decreasing order
         sorted_pop = sorted(population1, key = lambda x: -x[1])
@@ -85,33 +85,39 @@ def evolve_single(num_generations, pop_size, ind_size, strategy=0):
         current_fitness = [ind[1] for ind in sorted_pop]
         fitness_history.append(current_fitness)
 
-        # Remove the 25% worst individuals
-        sorted_pop = sorted_pop[:upper_bound]
+        if strategy == 3:
+            sorted_pop = sorted_pop[:2]
+            random_pop = generate_random_population(pop_size-2, ind_size)
+            random_pop_fitness = [(ind, calculate_fitness(ind, guide_list)) for ind in random_pop]
+            sorted_pop.extend(random_pop_fitness)
+        else:
+            # Remove the 25% worst individuals
+            sorted_pop = sorted_pop[:upper_bound]
 
-        # Recombine the 25% best individuals and restore population size
-        for j in range(0, lower_bound, 2):
-            # Recombine individuals based on chosen strategy 
-            if strategy == 0:
-                recombined = single_point_crossover(sorted_pop[j][0], sorted_pop[j+1][0])
-            elif strategy == 1:
-                recombined = double_point_crossover(sorted_pop[j][0], sorted_pop[j+1][0])
-            elif strategy == 2:
-                if i <= 200:
-                    recombined = double_point_crossover(sorted_pop[j][0], sorted_pop[j+1][0])
-                else:
+            # Recombine the 25% best individuals and restore population size
+            for j in range(2, lower_bound, 2):
+                # Recombine individuals based on chosen strategy 
+                if strategy == 0:
                     recombined = single_point_crossover(sorted_pop[j][0], sorted_pop[j+1][0])
-            # Re-calculate fitness value for new recombined individuals
-            recombined = [(ind, calculate_fitness(ind, guide_list)) for ind in recombined]
-            # Add new individuals to current population
-            sorted_pop.extend(recombined)
-        
-        # Mutate all individuals
-        for k in range(len(sorted_pop)):
-            mutate(sorted_pop[k][0])
-        
-        # Re-calculate fitness value for all individuals
-        sorted_pop = [(ind[0], calculate_fitness(ind[0], guide_list)) for ind in sorted_pop]
-
+                elif strategy == 1:
+                    recombined = double_point_crossover(sorted_pop[j][0], sorted_pop[j+1][0])
+                elif strategy == 2:
+                    if i <= 20:
+                        recombined = double_point_crossover(sorted_pop[j][0], sorted_pop[j+1][0])
+                    else:
+                        recombined = single_point_crossover(sorted_pop[j][0], sorted_pop[j+1][0])
+                # Re-calculate fitness value for new recombined individuals
+                recombined = [(ind, calculate_fitness(ind, guide_list)) for ind in recombined]
+                # Add new individuals to current population
+                sorted_pop.extend(recombined)
+            
+            # Mutate all individuals
+            for k in range(2, len(sorted_pop)):
+                mutate(sorted_pop[k][0])
+            
+            # Re-calculate fitness value for all individuals
+            sorted_pop = [(ind[0], calculate_fitness(ind[0], guide_list)) for ind in sorted_pop]
+                       
         # Save new generated population for next iteration
         population1 = sorted_pop
 
@@ -165,7 +171,7 @@ def evolve_multi(num_runs, plot_step_size, num_generations, pop_size, ind_size, 
     print(f"Average time per run: {np.mean(run_times):.2f}s ({np.mean(run_times)/60:.2f}min)")
     print(f"Fastest run: {min(run_times):.2f}s ({min(run_times)/60:.2f}min)")
     print(f"Slowest run: {max(run_times):.2f}s ({max(run_times)/60:.2f}min)")
-    print(f"Standard deviation: {np.std(run_times):.2f}s")
+    print(f"Standard deviation: {np.std(run_times):.2f}s\n")
 
     if plot_step_size == 0:
         return aggregated_fitness
@@ -222,10 +228,10 @@ def plot_fitness_evolution(fitness_history, step_size=1):
     plt.tight_layout()
     plt.show()
 
-def multi_strategy_test(num_runs, plot_step_size, num_generations, pop_size, ind_size):
+def multi_strategy_test(num_runs, num_generations, pop_size, ind_size):
     aggregated_fitnesses_per_strategy = []
-    for i in range(3):
-        aggregated_fitness = evolve_multi(num_runs, plot_step_size, num_generations, pop_size, ind_size, i)
+    for i in range(4):
+        aggregated_fitness = evolve_multi(num_runs, 0, num_generations, pop_size, ind_size, i)
         aggregated_fitnesses_per_strategy.append(aggregated_fitness)
     
     best_fitnesses_per_strategy = []
@@ -240,6 +246,7 @@ def multi_strategy_test(num_runs, plot_step_size, num_generations, pop_size, ind
     plt.title('Evolution of Fitness Values Across Generations (Multiple Runs)', fontsize=14, fontweight='bold')
     plt.grid(True, alpha=0.3)
 
+    # Plot trend line for each strategy
     generations_x = range(1, len(aggregated_fitnesses_per_strategy[0]) + 1)
     k = 1
     for strategy_fitnesses in best_fitnesses_per_strategy: 
@@ -268,4 +275,4 @@ def multi_strategy_test(num_runs, plot_step_size, num_generations, pop_size, ind
 
 # evolve_multi(30, 10, 1000, 500, 50)
 
-multi_strategy_test(30, 0, 1000, 500, 50)
+multi_strategy_test(30, 100, 500, 50)
