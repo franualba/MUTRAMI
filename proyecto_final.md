@@ -37,42 +37,76 @@ En el sistema musical occidental, las alturas se organizan en octavas, donde cad
 
 Los **intervalos** son las distancias entre dos notas musicales, medidas en semitonos. Los tonos relativos representan las diferencias de altura entre notas consecutivas. Por ejemplo, una secuencia melódica como C-D-E-F se puede representar como [+2, +2, +1] en semitonos, donde cada número indica la diferencia respecto a la nota anterior. Utilizar entonces tonos relativos en lugar de notas absolutas presenta las siguientes ventajas:
 
-**Invariancia tonal**: una melodía mantiene su identidad independientemente de la tonalidad en que se toque.
-
-**Reducción de espacio de búsqueda**: el algoritmo puede enfocarse en las relaciones melódicas sin preocuparse por la tonalidad absoluta.
-
-**Facilidad de transposición**: las melodías pueden transponerse fácilmente sumando una constante a todos los valores tonales.
+- **Invariancia tonal**: una melodía mantiene su identidad independientemente de la tonalidad en que se toque.
+- **Reducción de espacio de búsqueda**: el algoritmo puede enfocarse en las relaciones melódicas sin preocuparse por la tonalidad absoluta.
+- **Facilidad de transposición**: las melodías pueden transponerse fácilmente sumando una constante a todos los valores tonales.
 
 ### 2. PROTOCOLO MIDI
 
 El protocolo **MIDI** (Musical Instrument Digital Interface) permite comunicar instrumentos musicales electrónicos con computadoras y otros equipos similares. Fue desarrollado en la década de 1980 y se ha convertido actualmente en el estándar de facto para la representación digital de música, debido principalmente las siguientes características:
 
 - **Eficiencia de almacenamiento**: MIDI no almacena audio digitalizado, sino instrucciones sobre cómo tocar música. Esto resulta en archivos extremadamente pequeños comparados con formatos de audio.
-
 - **Editabilidad**: los datos MIDI pueden modificarse fácilmente, permitiendo cambiar notas, instrumentos, tempo y otros parámetros sin degradación de calidad.
-
 - **Separación de contenido**: se separa la información musical (qué tocar) de la síntesis de sonido (cómo suena), facilitando la manipulación algorítmica.
-
 - **Precisión temporal**: se manejan tiempos con alta precisión, permitiendo representar ritmos complejos y matices temporales.
 
 La información musical contenida en un archivo MIDI se representa mediante una serie de "mensajes" como los siguientes:
 
-**Note On/Off**: especifica cuándo comienza y termina una nota, incluyendo:
-- Pitch (altura): número de 0 a 127, donde 60 representa el Do (o C) central
-- Velocity (velocidad): intensidad de ataque (0-127)
-- Channel (canal): permite hasta 16 instrumentos simultáneos
-
-**Program Change**: selecciona el instrumento o timbre a utilizar
-
-**Control Change**: modifica parámetros como volumen, modulación, etc.
-
-**Timing**: provee información temporal precisa sobre cuándo ocurren los eventos
+- **Note On/Off**: especifica cuándo comienza y termina una nota, incluyendo:
+    - Pitch (altura): número de 0 a 127, donde 60 representa el Do (o C) central
+    - Velocity (velocidad): intensidad de ataque (0-127)
+    - Channel (canal): permite hasta 16 instrumentos simultáneos
+- **Program Change**: selecciona el instrumento o timbre a utilizar
+- **Control Change**: modifica parámetros como volumen, modulación, etc.
+- **Timing**: provee información temporal precisa sobre cuándo ocurren los eventos
 
 Para el proyecto en particular, se utiliza la librería `pretty-midi` que abstrae muchos de estos parámentros, facilitando su manipulación.
 
+### 3. ALGORITMOS GENÉTICOS
 
+En el ámbito del machine learning, se conoce como "algoritmos genéticos" al tipo de algoritmos evolutivos que emplean técnicas de **búsqueda local** para encontrar soluciones a problemas de **optimización** y aprendizaje, inspirados en el proceso evolutivo de la **naturaleza**.
+
+Haciendo una analogía con el concepto biológico, entre los principales elementos de estos algoritmos encontramos entonces una **población** compuesta por un conjunto de **individuos** donde cada uno representa una posible solución codificada del problema. Estos últimos normalmente son alterados o modificados en distintas proporciones y siguiendo diferentes criterios, por medio de lo que se denomina "**operadores genéticos**", de los cuales podemos mencionar los de selección, entrecruzamiento o recombinación, mutación, fisión, elisión, entre otros. Como resultado de aplicar estos operadores a los individuos de una población se genera una nueva población, evolucionada, para la cual vuelve a repetirse el proceso de aplicación de operadores. Cada una de estas "nuevas poblaciones" recibe el nombre de **generación**, y la pieza clave encargada de evaluar la idoneidad de cada individuo entre generación y generación y guiar así todo el proceso evolutivo se denomina **función de aptitud o de fitness**. De esta manera, la evolución puede finalizar atendiendo a diversos criterios, siendo el principal el hecho de haber obtenido un valor deseado de aptitud, pero incluyendo también el haber alcanzado un número determinado de iteraciones o haber excedido un valor particular en el tiempo de ejecución del algoritmo.
+
+En líneas generales, podemos decir que el funcionamiento básico de este tipo de algoritmos se resume de la siguiente manera:
+
+```
+1. Se inicializa una población comunmente aleatoria
+2. Se calcula el valor de fitness de cada individuo
+3. Mientras no se cumpla el criterio de detención:
+   a. Se seleccionan individuos para reproducción
+   b. A una parte de estos se les aplica recombinación
+   c. A otra parte mutación
+   d. Se calcula el valor de fitness de los nuevos individuos
+   e. Se seleccionan aquellos individuos que integrarán la próxima generación
+4. Se retorna el mejor individuo 
+```
+
+### 4. NORMALIZED COMPRESSION DISTANCE
+
+Como se mencionó previamente en la introducción, la parte tal vez más difícil de aplicar un análisis algorítmico al campo de la música resulta ser la de cómo definir lo que pueda llegar a ser una composición musical idónea o "más apta" que otra, ya que esto se presta a depender del punto de vista desde el cual una pieza musical pueda ser juzgada por un eventual oyente.
+
+Para intentar construir una función de aptitud objetiva a fin de evitar entonces este grado de subjetividad inherente al tema en estudio, algunos investigadores optaron por experimentar con un concepto perteneciente al ámbito de la Teoría de la Información denominado **Normalized Information Distance** (NID), cuya fórmula se define a continuación:
+
+$$\text{NID}(x,y) = \frac{\max\{K(x|y), K(y|x)\}}{\max\{K(x), K(y)\}}$$
+
+donde $K(x|y)$ es la complejidad condicional de Kolmogorov de la cadena $x$ dada la cadena $y$, y cuyo valor es la longitud del programa más corto (para alguna máquina universal) el cual al proporcionarle como entrada la cadena $y$ devuelve la cadena $x$. 
+
+Desafortunadamente, tanto las complejidades condicionales como incondicionales presentes en la fórmula anterior resultan ser funciones no computables, por lo cual en la práctica se utilizan aproximaciones a la complejidad de Kolmogorov empleando algoritmos de compresión ya existentes y computables (como gzip, bzip2, lz4, etc.) que dan lugar a la métrica llamada **Normalized Compression Distance** (NCD):
+
+$$\text{NCD}(x,y) = \frac{C(xy) - \min\{C(x), C(y)\}}{\max\{C(x), C(y)\}}$$
+
+donde:
+- $C$ es un algoritmo de compresión determinado
+- $C(x)$ es el tamaño comprimido de la cadena $x$ usando C
+- $C(y)$ es el tamaño comprimido de la cadena $y$ usando C
+- $C(xy)$ es el tamaño comprimido de la cadena concatenada $xy$ usando C
+
+
+Si bien esta métrica no logra los resultados teóricamente óptimos de su versión no computable, se ha demostrado que en la práctica, y en algunas ocasiones combinándola con otras técnicas, los resultados obtenidos al clasificar piezas musicales por género (además también de los resultados obtenidos con tareas de clustering más allá de la música) son muy satisfactorios, motivo por el cual se espera poder replicar estos resultados al utilizar la NCD como parte de la función de fitness de un algoritmo genético.
 
 ## Diseño Experimental
+
 
 
 ## Análisis de resultados
