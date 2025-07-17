@@ -92,7 +92,7 @@ $$\text{NID}(x,y) = \frac{\max\{K(x|y), K(y|x)\}}{\max\{K(x), K(y)\}}$$
 
 donde $K(x|y)$ es la complejidad condicional de Kolmogorov de la cadena $x$ dada la cadena $y$, y cuyo valor es la longitud del programa más corto (para alguna máquina universal) el cual al proporcionarle como entrada la cadena $y$ devuelve la cadena $x$. 
 
-Desafortunadamente, tanto las complejidades condicionales como incondicionales presentes en la fórmula anterior resultan ser funciones no computables, por lo cual en la práctica se utilizan aproximaciones a la complejidad de Kolmogorov empleando algoritmos de compresión ya existentes y computables (como gzip, bzip2, lz4, etc.) que dan lugar a la métrica llamada **Normalized Compression Distance** (NCD):
+Desafortunadamente, acudiendo al problema de la detención de máquinas de Turing puede demostrarse que tanto las complejidades condicionales como incondicionales presentes en la fórmula anterior resultan ser funciones no computables, por lo cual en la práctica se utilizan aproximaciones a la complejidad de Kolmogorov empleando algoritmos de compresión ya existentes y computables (como gzip, bzip2, lz4, etc.) que dan lugar a la métrica llamada **Normalized Compression Distance** (NCD):
 
 $$\text{NCD}(x,y) = \frac{C(xy) - \min\{C(x), C(y)\}}{\max\{C(x), C(y)\}}$$
 
@@ -102,12 +102,86 @@ donde:
 - $C(y)$ es el tamaño comprimido de la cadena $y$ usando C
 - $C(xy)$ es el tamaño comprimido de la cadena concatenada $xy$ usando C
 
-
 Si bien esta métrica no logra los resultados teóricamente óptimos de su versión no computable, se ha demostrado que en la práctica, y en algunas ocasiones combinándola con otras técnicas, los resultados obtenidos al clasificar piezas musicales por género (además también de los resultados obtenidos con tareas de clustering más allá de la música) son muy satisfactorios, motivo por el cual se espera poder replicar estos resultados al utilizar la NCD como parte de la función de fitness de un algoritmo genético.
 
 ## Diseño Experimental
 
+Para poner a prueba el rendimiento del algoritmo planteado se establecieron como punto de partida los siguientes lineamientos:
 
+1. Sólo se trabaja con la melodía de los archivos musicales, dejando de lado aspectos como la armonía o el ritmo. Esto implica que, para un archivo MIDI en particular obtenido de internet, se debe inspeccionar el número de pistas incluídas en el mismo, quedándonos sólo con la parte melódica en caso de encontrar más de una pista.
+2. Se omite alterar la duración de cada nota, trabajando únicamente con los tonos. Esto se debe a que, de acuerdo a lo investigado, si se modifica la duración de cada nota en una melodía sin afectar sus tonos, sigue siendo posible reconocer la melodía original (en otras palabras, la duración de cada nota no altera de forma sustancial la esencia de una melodía). Sin embargo esto no ocurre con el caso opuesto, es decir, al alterar los tonos de cada nota de una melodía manteniendo sus duraciones, se ha comprobado que la melodía deja de ser reconocible.
+3. Cada individuo de la población consiste en una secuencia de diferencias tonales, es decir, se trabaja con tonos relativos y no absolutos.
+4. Para guiar el proceso evolutivo, se toman como guía dos secuencias melódicas, de la misma longitud que los individios de la población. La función de fitness calcula entonces el valor de aptitud de cada individuo partiendo del valor de la NCD entre la secuencia tonal del individuo y la secuencia de la melodía guía, para cada secuencia guía, y ponderando estas distancias en partes iguales según el número de secuencias guía (en este caso, se utilizan 2 secuencias guía, por lo que cada valor de la NCD se multiplica por 0.5 para obtener el valor de aptitud final de un individuo).
+5. La mutación se realiza eligiendo en forma aleatoria un valor puntual de la secuencia de tonos relativos del individuo, y adicionándole un valor también aleatorio en el rango [-2, 2].
+6. La longitud de cada individuo es de 50 tonos relativos, y cada tono se inicializa en forma aleatoria con un valor en el rango [-20, 20].
+7. El tamaño de la población es de 100 individuos.
+8. Se ejecuta 30 veces cada proceso evolutivo con el objetivo de obtener resultados más representativos del rendimiento de una estrategia. Por ejemplo, si una estrategia se ejecuta a lo largo de 100 generaciones, se repite 30 veces cada proceso de 100 generaciones y se agregan los resultados de cada generación al final para su posterior evaluación.
+
+La estrategia de evolución principal adoptada consiste en:
+1. Inicializar una población en forma aleatoria.
+2. Calcular el valor de fitness de cada individuo y ordenar la población en forma descendente de acuerdo a este valor.
+3. Eliminar el 25% menos apto de individuos de la población.
+4. Aplicar una estrategia de recombinación al 25% de los individuos más aptos, y agregar el resultado al resto de la población para sustituir el 25% eliminado en el paso anterior.
+5. Aplicar mutación a todos los individuos.
+6. Repetir desde el paso 2 hasta llegar al número de generaciones deseado.
+
+A continuación se presentan algunas figuras con los resultados obtenidos:
+
+<div align="center">
+
+![](./plots/plot3_fixed_indsize50_popsize500_gens100_single.png)  
+<b>Figura 1</b>
+</div>
+
+<div align="center">
+
+![](./plots/plot3_fixed_indsize50_popsize500_gens100_single_runs30.png)  
+<b>Figura 2</b>
+</div>
+
+<div align="center">
+
+![](./plots/plot4_fixed_indsize50_popsize500_gens1000_single_runs30.png)  
+<b>Figura 3</b>
+</div>
+
+<div align="center">
+
+![](./plots/plot_indsize50_popsize500_gens1000_multi_strategy_runs30.png)  
+<b>Figura 4</b>
+</div>
+
+<div align="center">
+
+![](./plots/plot_indsize50_popsize500_gens1000_multi_strategy_runs30_zoomed_0.png)  
+<b>Figura 5</b>
+</div>
+
+<div align="center">
+
+![](./plots/plot_indsize50_popsize500_gens1000_multi_strategy_runs30_zoomed_1.png)  
+<b>Figura 6</b>
+</div>
+
+<div align="center">
+
+![](./plots/plot_indsize50_popsize500_gens100_multi_strategy_random_runs30_elitism_random.png)  
+<b>Figura 7</b>
+</div>
+
+Y la siguiente es una tabla que permite visualizar algunos tiempos de ejecución de cada estrategia junto con el mejor valor de fitness obtenido:
+
+<div align="center">
+
+| Estrategia | Descripción | Best Fitness | Tiempo Total | Tiempo Promedio | Más Rápida | Más Lenta | Desv. Est. |
+|:------------:|:----------------------------:|:--------------:|:-----------------:|:------------:|:-----------:|:------------:|:------------:|
+| 1          | Recombinación simple       | 0.2746  | 234.75s      | 7.82s            | 7.37s      | 8.39s     | 0.21s      |
+| 2          | Recombinación doble        | 0.2908  | 256.74s      | 8.56s            | 7.19s      | 13.97s    | 1.51s      |
+| 3          | Recombinación mixta        | 0.2810  | 232.86s      | 7.76s            | 7.28s      | 8.29s     | 0.22s      |
+| 4          | Solución aleatoria         | 0.1972  | 204.90s      | 6.83s            | 6.67s      | 7.25s     | 0.12s      |
+
+<b>Tabla 1</b>
+</div>
 
 ## Análisis de resultados
 
@@ -116,4 +190,18 @@ Si bien esta métrica no logra los resultados teóricamente óptimos de su versi
 
 
 ## Bibliografía
+
+[1] [Understanding Basic Music Theory](https://www.opentextbooks.org.hk/system/files/export/2/2180/pdf/Understanding_Basic_Music_Theory_2180.pdf)
+
+[2] [A simple genetic algorithm for music generation by means of algorithmic information theory](https://www.researchgate.net/profile/Manuel-Alfonseca/publication/221008730_A_simple_genetic_algorithm_for_music_generation_by_means_of_algorithmic_information_theory/links/02e7e521b9152b11e4000000/A-simple-genetic-algorithm-for-music-generation-by-means-of-algorithmic-information-theory.pdf?_tp=eyJjb250ZXh0Ijp7ImZpcnN0UGFnZSI6ImluZGV4IiwicGFnZSI6InB1YmxpY2F0aW9uIn19)
+
+[3] [Music Recombination using a Genetic Algorithm](https://scholarworks.indianapolis.iu.edu/bitstream/handle/1805/21281/Majumder_2019_music.pdf?isAllowed=y&sequence=1)
+
+[4] [Using general-purpose compression algorithms for music analysis](https://vbn.aau.dk/files/223712009/rapport.pdf)
+
+[5] [LZ77 Is All You Need? Why Gzip + KNN Works for Text Classification](https://blog.codingconfessions.com/p/lz77-is-all-you-need)
+
+[6] [Compression: Clearing the Confusion on ZIP, GZIP, Zlib and DEFLATE](https://dev.to/biellls/compression-clearing-the-confusion-on-zip-gzip-zlib-and-deflate-15g1)
+
+[7] [“Low-Resource” Text Classification: A Parameter-Free Classification Method with Compressors](https://aclanthology.org/2023.findings-acl.426.pdf)
 
