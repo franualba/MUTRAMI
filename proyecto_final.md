@@ -133,7 +133,7 @@ La estrategia de evolución principal adoptada consiste en:
 5. Aplicar mutación a todos los individuos.
 6. Repetir desde el paso 2 hasta llegar al número de generaciones deseado.
 
-Con el proósito de investigar la mejor relación entre exploración y explotación del algoritmo, se experimenta con distintas estrategias de recombinación, identificadas de la siguiente forma:
+Con el propósito de investigar la mejor relación entre exploración y explotación del algoritmo, se experimenta con distintas estrategias de recombinación, identificadas de la siguiente forma:
 
 1. **Estrategia 0**: se utiliza siempre recombinación de un solo punto
 2. **Estrategia 1**: se utiliza siempre recombinación de dos puntos
