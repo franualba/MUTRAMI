@@ -92,7 +92,7 @@ $$\text{NID}(x,y) = \frac{\max\{K(x|y), K(y|x)\}}{\max\{K(x), K(y)\}}$$
 
 donde $K(x|y)$ es la complejidad condicional de Kolmogorov de la cadena $x$ dada la cadena $y$, y cuyo valor es la longitud del programa más corto (para alguna máquina universal) el cual al proporcionarle como entrada la cadena $y$ devuelve la cadena $x$. 
 
-Desafortunadamente, acudiendo al problema de la detención de máquinas de Turing puede demostrarse que tanto las complejidades condicionales como incondicionales presentes en la fórmula anterior resultan ser funciones no computables, por lo cual en la práctica se utilizan aproximaciones a la complejidad de Kolmogorov empleando algoritmos de compresión ya existentes y computables (como gzip, bzip2, lz4, etc.) que dan lugar a la métrica llamada **Normalized Compression Distance** (NCD):
+Desafortunadamente, y como se menciona en [2], acudiendo al problema de la detención de máquinas de Turing puede demostrarse que tanto las complejidades condicionales como incondicionales presentes en la fórmula anterior resultan ser funciones no computables, por lo cual en la práctica se utilizan aproximaciones a la complejidad de Kolmogorov empleando algoritmos de compresión ya existentes y computables (como gzip, bzip2, lz4, etc.) que dan lugar a la métrica llamada **Normalized Compression Distance** (NCD):
 
 $$\text{NCD}(x,y) = \frac{C(xy) - \min\{C(x), C(y)\}}{\max\{C(x), C(y)\}}$$
 
@@ -102,19 +102,27 @@ donde:
 - $C(y)$ es el tamaño comprimido de la cadena $y$ usando C
 - $C(xy)$ es el tamaño comprimido de la cadena concatenada $xy$ usando C
 
-Si bien esta métrica no logra los resultados teóricamente óptimos de su versión no computable, se ha demostrado que en la práctica, y en algunas ocasiones combinándola con otras técnicas, los resultados obtenidos al clasificar piezas musicales por género (además también de los resultados obtenidos con tareas de clustering más allá de la música) son muy satisfactorios, motivo por el cual se espera poder replicar estos resultados al utilizar la NCD como parte de la función de fitness de un algoritmo genético.
+Si bien esta métrica no logra los resultados teóricamente óptimos de su versión no computable, se ha demostrado que en la práctica, y en algunas ocasiones combinándola con otras técnicas (como KNN, ver [2]), los resultados obtenidos al clasificar piezas musicales por género (además también de los resultados obtenidos con tareas de clustering más allá de la música) son muy satisfactorios, motivo por el cual se espera poder replicar estos resultados al utilizar la NCD como parte de la función de fitness de un algoritmo genético.
+
+Considerando que aplicamos esta métrica entonces para evaluar el grado de similitud entre dos secuencias de tonos relativos $x$ e $y$, el valor obtenido puede interpretarse de la siguiente manera:
+
+- **NCD ≈ 0**: Las secuencias son muy similares
+- **NCD ≈ 1**: Las secuencias son completamente diferentes
+- **NCD > 1**: Puede ocurrir debido a imperfecciones del algoritmo de compresión
+
+Para su uso en la función de fitness, se opta por invertir la relación anterior, de forma que, a mayor valor de fitness (es decir, un valor de dicha función más cercano a uno), indique mayor similitud entre las secuencias y por lo tanto mayor valor de aptitud.
 
 ## Diseño Experimental
 
 Para poner a prueba el rendimiento del algoritmo planteado se establecieron como punto de partida los siguientes lineamientos:
 
 1. Sólo se trabaja con la melodía de los archivos musicales, dejando de lado aspectos como la armonía o el ritmo. Esto implica que, para un archivo MIDI en particular obtenido de internet, se debe inspeccionar el número de pistas incluídas en el mismo, quedándonos sólo con la parte melódica en caso de encontrar más de una pista.
-2. Se omite alterar la duración de cada nota, trabajando únicamente con los tonos. Esto se debe a que, de acuerdo a lo investigado, si se modifica la duración de cada nota en una melodía sin afectar sus tonos, sigue siendo posible reconocer la melodía original (en otras palabras, la duración de cada nota no altera de forma sustancial la esencia de una melodía). Sin embargo esto no ocurre con el caso opuesto, es decir, al alterar los tonos de cada nota de una melodía manteniendo sus duraciones, se ha comprobado que la melodía deja de ser reconocible.
+2. Se omite alterar la duración de cada nota, trabajando únicamente con los tonos. Esto se debe a que, de acuerdo a lo investigado (ver [2]), si se modifica la duración de cada nota en una melodía sin afectar sus tonos, sigue siendo posible reconocer la melodía original (en otras palabras, la duración de cada nota no altera de forma sustancial la esencia de una melodía). Sin embargo esto no ocurre con el caso opuesto, es decir, al alterar los tonos de cada nota de una melodía manteniendo sus duraciones, se ha comprobado que la melodía deja de ser reconocible.
 3. Cada individuo de la población consiste en una secuencia de diferencias tonales, es decir, se trabaja con tonos relativos y no absolutos.
 4. Para guiar el proceso evolutivo, se toman como guía dos secuencias melódicas, de la misma longitud que los individios de la población. La función de fitness calcula entonces el valor de aptitud de cada individuo partiendo del valor de la NCD entre la secuencia tonal del individuo y la secuencia de la melodía guía, para cada secuencia guía, y ponderando estas distancias en partes iguales según el número de secuencias guía (en este caso, se utilizan 2 secuencias guía, por lo que cada valor de la NCD se multiplica por 0.5 para obtener el valor de aptitud final de un individuo).
 5. La mutación se realiza eligiendo en forma aleatoria un valor puntual de la secuencia de tonos relativos del individuo, y adicionándole un valor también aleatorio en el rango [-2, 2].
 6. La longitud de cada individuo es de 50 tonos relativos, y cada tono se inicializa en forma aleatoria con un valor en el rango [-20, 20].
-7. El tamaño de la población es de 100 individuos.
+7. Se utiliza un tamaño de población de 500 individuos.
 8. Se ejecuta 30 veces cada proceso evolutivo con el objetivo de obtener resultados más representativos del rendimiento de una estrategia. Por ejemplo, si una estrategia se ejecuta a lo largo de 100 generaciones, se repite 30 veces cada proceso de 100 generaciones y se agregan los resultados de cada generación al final para su posterior evaluación.
 
 La estrategia de evolución principal adoptada consiste en:
@@ -125,48 +133,55 @@ La estrategia de evolución principal adoptada consiste en:
 5. Aplicar mutación a todos los individuos.
 6. Repetir desde el paso 2 hasta llegar al número de generaciones deseado.
 
+Con el proósito de investigar la mejor relación entre exploración y explotación del algoritmo, se experimenta con distintas estrategias de recombinación, identificadas de la siguiente forma:
+
+1. **Estrategia 0**: se utiliza siempre recombinación de un solo punto
+2. **Estrategia 1**: se utiliza siempre recombinación de dos puntos
+3. **Estrategia 2**: del total de generaciones a ejecutar, el primer 20% utiliza recombinación doble y el 80% restante recombinación simple 
+4. **Estrategia 3**: solución aleatoria (no emplea recombinación ni mutación, pero sí elitismo) 
+
 A continuación se presentan algunas figuras con los resultados obtenidos:
 
 <div align="center">
 
 ![](./plots/plot3_fixed_indsize50_popsize500_gens100_single.png)  
-<b>Figura 1</b>
+<b>Figura 1.</b> Ejecución simple de 100 generaciones, cada una de 500 individuos y cada individuo con una longitud de 50 tonos relativos
 </div>
 
 <div align="center">
 
 ![](./plots/plot3_fixed_indsize50_popsize500_gens100_single_runs30.png)  
-<b>Figura 2</b>
+<b>Figura 2.</b> Mismos parámentros de ejecución que los de la Figura 1, pero repitiendo la ejecución de cada proceso evolutivo 30 veces (es decir, 30 ejecuciones de 100 generaciones cada una)
 </div>
 
 <div align="center">
 
 ![](./plots/plot4_fixed_indsize50_popsize500_gens1000_single_runs30.png)  
-<b>Figura 3</b>
+<b>Figura 3.</b> Resultado de ejecutar 30 procesos de 1000 generaciones cada uno, donde cada generación consta de 500 individuos de 50 tonos relativos cada uno
 </div>
 
 <div align="center">
 
 ![](./plots/plot_indsize50_popsize500_gens1000_multi_strategy_runs30.png)  
-<b>Figura 4</b>
+<b>Figura 4.</b> Diagrama de líneas de tendencia comparando el rendimiento de las distintas estrategias de recombinación, para 30 procesos de 1000 generaciones cada uno, donde cada generación consta de 500 individuos de 50 tonos relativos cada uno
 </div>
 
 <div align="center">
 
 ![](./plots/plot_indsize50_popsize500_gens1000_multi_strategy_runs30_zoomed_0.png)  
-<b>Figura 5</b>
+<b>Figura 5.</b> Acercamiento a la parte final del proceso evolutivo representado en la Figura 4 (incluye desde la generación número 700 a la número 1000)
 </div>
 
 <div align="center">
 
 ![](./plots/plot_indsize50_popsize500_gens1000_multi_strategy_runs30_zoomed_1.png)  
-<b>Figura 6</b>
+<b>Figura 6:</b> Acercamiento a la parte inicial del proceso evolutivo representado en la Figura 4 (incluye desde la generación número 50 a la número 400)
 </div>
 
 <div align="center">
 
 ![](./plots/plot_indsize50_popsize500_gens100_multi_strategy_random_runs30_elitism_random.png)  
-<b>Figura 7</b>
+<b>Figura 7.</b> Muestra el rendimiento de cada estrategia como en la Figura 4, pero esta vez empleando elitismo (me quedo con las 2 mejores soluciones de cada generación) e incluyendo también a modo de comparación el rendimiento de una solución aleatoria (la cual no emplea ni recombinación ni mutación, pero si elitismo). Esta prueba consistió en 30 procesos de 100 generaciones cada uno (no 1000), donde cada generación consta de 500 individuos de 50 tonos relativos cada uno
 </div>
 
 Y la siguiente es una tabla que permite visualizar algunos tiempos de ejecución de cada estrategia junto con el mejor valor de fitness obtenido:
