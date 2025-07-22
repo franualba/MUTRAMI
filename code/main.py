@@ -2,8 +2,8 @@ import zlib
 import time
 import random
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
-from features_extractor import print_midi_info
 from features_extractor import replace_pitches_in_midi_file
 from features_extractor import midi_to_relative_pitch_sequence
 
@@ -26,11 +26,25 @@ def double_point_crossover(parent1, parent2):
     length = min(len(parent1), len(parent2))
     crossover_point1 = random.randint(0, length)
     crossover_point2 = random.randint(0, length)
-    # Swap values if the end up being reversed
+    # Swap values if they end up being reversed
     if crossover_point1 > crossover_point2:
         crossover_point1, crossover_point2 = crossover_point2, crossover_point1
     new_parent1 = parent1[:crossover_point1] + parent2[crossover_point1:crossover_point2] + parent1[crossover_point2:]
     new_parent2 = parent2[:crossover_point1] + parent1[crossover_point1:crossover_point2] + parent2[crossover_point2:]
+    return [new_parent1, new_parent2]
+
+def triple_point_crossover(parent1, parent2):
+    length = min(len(parent1), len(parent2))
+    points = sorted([random.randint(0, length) for _ in range(3)])
+    new_parent1 = parent1[:points[0]] + parent2[points[0]:points[1]] + parent1[points[1]:points[2]] + parent2[points[2]:]
+    new_parent2 = parent2[:points[0]] + parent1[points[0]:points[1]] + parent2[points[1]:points[2]] + parent1[points[2]:]
+    return [new_parent1, new_parent2]
+
+def quadruple_point_crossover(parent1, parent2):
+    length = min(len(parent1), len(parent2))
+    points = sorted([random.randint(0, length) for _ in range(4)])
+    new_parent1 = parent1[:points[0]] + parent2[points[0]:points[1]] + parent1[points[1]:points[2]] + parent2[points[2]:points[3]] + parent1[points[3]:]
+    new_parent2 = parent2[:points[0]] + parent1[points[0]:points[1]] + parent2[points[1]:points[2]] + parent1[points[2]:points[3]] + parent2[points[3]:]
     return [new_parent1, new_parent2]
 
 def generate_random_population(pop_size, ind_length):
@@ -85,7 +99,7 @@ def evolve_single(num_generations, pop_size, ind_size, strategy=0, random=False)
         current_fitness = [ind[1] for ind in sorted_pop]
         fitness_history.append(current_fitness)
 
-        if strategy == 3:
+        if strategy == 6:
             sorted_pop = sorted_pop[:2]
             random_pop = generate_random_population(pop_size-2, ind_size)
             random_pop_fitness = [(ind, calculate_fitness(ind, guide_list)) for ind in random_pop]
@@ -102,8 +116,19 @@ def evolve_single(num_generations, pop_size, ind_size, strategy=0, random=False)
                 elif strategy == 1:
                     recombined = double_point_crossover(sorted_pop[j][0], sorted_pop[j+1][0])
                 elif strategy == 2:
-                    if i <= 20:
+                    if i <= 200:
                         recombined = double_point_crossover(sorted_pop[j][0], sorted_pop[j+1][0])
+                    else:
+                        recombined = single_point_crossover(sorted_pop[j][0], sorted_pop[j+1][0])
+                elif strategy == 3:
+                    recombined = triple_point_crossover(sorted_pop[j][0], sorted_pop[j+1][0])
+                elif strategy == 4:
+                    recombined = quadruple_point_crossover(sorted_pop[j][0], sorted_pop[j+1][0])
+                elif strategy == 5:
+                    if i <= 200:
+                        recombined = double_point_crossover(sorted_pop[j][0], sorted_pop[j+1][0])
+                    elif i > 200 and i <= 500:
+                        recombined = triple_point_crossover(sorted_pop[j][0], sorted_pop[j+1][0])
                     else:
                         recombined = single_point_crossover(sorted_pop[j][0], sorted_pop[j+1][0])
                 # Re-calculate fitness value for new recombined individuals
@@ -228,9 +253,9 @@ def plot_fitness_evolution(fitness_history, step_size=1):
     plt.tight_layout()
     plt.show()
 
-def multi_strategy_test(num_runs, num_generations, pop_size, ind_size):
+def multi_strategy_test(num_runs, num_generations, pop_size, ind_size, save_csv=True, csv_filename="fitness_data.csv"):
     aggregated_fitnesses_per_strategy = []
-    for i in range(4):
+    for i in range(7):
         aggregated_fitness = evolve_multi(num_runs, 0, num_generations, pop_size, ind_size, i)
         aggregated_fitnesses_per_strategy.append(aggregated_fitness)
     
@@ -239,6 +264,36 @@ def multi_strategy_test(num_runs, num_generations, pop_size, ind_size):
         best_fitnesses = [max(strategy[j]) for j in range(len(strategy))]
         best_fitnesses_per_strategy.append(best_fitnesses)
     
+    # Save data to CSV
+    if save_csv:
+        df = pd.DataFrame()
+        for k, strategy_fitnesses in enumerate(best_fitnesses_per_strategy):
+            df[f"Strategy {k+1}"] = strategy_fitnesses
+        df.to_csv(csv_filename, index=False)
+        print(f"Fitness data saved to {csv_filename}")
+
+    # # Setup plotting
+    # plt.figure(figsize=(12,8))
+    # plt.xlabel('Generation', fontsize=12)
+    # plt.ylabel('Fitness Value', fontsize=12)
+    # plt.title('Evolution of Fitness Values Across Generations (Multiple Runs)', fontsize=14, fontweight='bold')
+    # plt.grid(True, alpha=0.3)
+
+    # # Plot trend line for each strategy
+    # generations_x = range(1, len(aggregated_fitnesses_per_strategy[0]) + 1)
+    # k = 1
+    # for strategy_fitnesses in best_fitnesses_per_strategy: 
+    #     plt.plot(generations_x, strategy_fitnesses, linewidth=2, alpha=0.8, label=f"Best Fitness Strategy {k}")
+    #     k += 1
+
+    # plt.legend()
+    # plt.tight_layout()
+    # plt.show()
+
+def plot_multi_strategy_test_from_csv(csv_filename):
+    # Load data from CSV file
+    df = pd.read_csv(csv_filename)
+    
     # Setup plotting
     plt.figure(figsize=(12,8))
     plt.xlabel('Generation', fontsize=12)
@@ -246,12 +301,10 @@ def multi_strategy_test(num_runs, num_generations, pop_size, ind_size):
     plt.title('Evolution of Fitness Values Across Generations (Multiple Runs)', fontsize=14, fontweight='bold')
     plt.grid(True, alpha=0.3)
 
-    # Plot trend line for each strategy
-    generations_x = range(1, len(aggregated_fitnesses_per_strategy[0]) + 1)
-    k = 1
-    for strategy_fitnesses in best_fitnesses_per_strategy: 
-        plt.plot(generations_x, strategy_fitnesses, linewidth=2, alpha=0.8, label=f"Best Fitness Strategy {k}")
-        k += 1
+    # Plot trend line for each strategy (each column)
+    generations_x = range(1, len(df) + 1)
+    for column in df.columns:
+        plt.plot(generations_x, df[column], linewidth=2, alpha=0.8, label=f"Best Fitness {column}")
 
     plt.legend()
     plt.tight_layout()
@@ -275,4 +328,5 @@ def multi_strategy_test(num_runs, num_generations, pop_size, ind_size):
 
 # evolve_multi(30, 10, 1000, 500, 50)
 
-multi_strategy_test(30, 100, 500, 50)
+multi_strategy_test(30, 1000, 500, 50)
+plot_multi_strategy_test_from_csv("fitness_data.csv")
