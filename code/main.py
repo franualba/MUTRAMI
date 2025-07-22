@@ -6,6 +6,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from features_extractor import replace_pitches_in_midi_file
 from features_extractor import midi_to_relative_pitch_sequence
+import os
 
 midi_input_1 = "../midi_files/mel1.mid"
 midi_input_2 = "../midi_files/mel2.mid"
@@ -127,7 +128,7 @@ def evolve_single(num_generations, pop_size, ind_size, strategy=0, random=False)
                 elif strategy == 5:
                     if i <= 200:
                         recombined = double_point_crossover(sorted_pop[j][0], sorted_pop[j+1][0])
-                    elif i > 200 and i <= 500:
+                    elif 200 < i <= 500:
                         recombined = triple_point_crossover(sorted_pop[j][0], sorted_pop[j+1][0])
                     else:
                         recombined = single_point_crossover(sorted_pop[j][0], sorted_pop[j+1][0])
@@ -153,7 +154,7 @@ def evolve_single(num_generations, pop_size, ind_size, strategy=0, random=False)
     
     return fitness_history, final_sorted_pop[0]
 
-def evolve_multi(num_runs, plot_step_size, num_generations, pop_size, ind_size, strategy):
+def evolve_multi(num_runs, plot_step_size, num_generations, pop_size, ind_size, strategy, timing_csv_filename="timing_stats.csv"):
     all_fitness_histories = []
     best_individuals = []
     run_times = []
@@ -190,13 +191,29 @@ def evolve_multi(num_runs, plot_step_size, num_generations, pop_size, ind_size, 
     print("Created MIDI file using best individual's pitches")
     print(f"Best fit after {num_generations} generations across {num_runs} runs: {best_run_individual[1]}")
 
-    # Print timing statistics
-    print(f"\n=== Timing Statistics ===")
-    print(f"Total execution time: {total_time:.2f}s ({total_time/60:.2f}min)")
-    print(f"Average time per run: {np.mean(run_times):.2f}s ({np.mean(run_times)/60:.2f}min)")
-    print(f"Fastest run: {min(run_times):.2f}s ({min(run_times)/60:.2f}min)")
-    print(f"Slowest run: {max(run_times):.2f}s ({max(run_times)/60:.2f}min)")
-    print(f"Standard deviation: {np.std(run_times):.2f}s\n")
+    # Prepare current strategy timing statistics
+    strategy_name = f"Strategy {strategy+1}"
+    timing_col = pd.Series({
+        "Total execution time (s)": total_time,
+        "Total execution time (min)": total_time / 60,
+        "Average time per run (s)": np.mean(run_times),
+        "Average time per run (min)": np.mean(run_times) / 60,
+        "Fastest run (s)": min(run_times),
+        "Fastest run (min)": min(run_times) / 60,
+        "Slowest run (s)": max(run_times),
+        "Slowest run (min)": max(run_times) / 60,
+        "Standard deviation (s)": np.std(run_times),
+        "Best fitness": best_run_individual[1]
+    }, name=strategy_name)
+
+    # Append or create CSV file where each strategy is a column
+    if os.path.exists(timing_csv_filename):
+        df_timing = pd.read_csv(timing_csv_filename, index_col=0)
+        df_timing[strategy_name] = timing_col
+    else:
+        df_timing = pd.DataFrame(timing_col)
+    df_timing.to_csv(timing_csv_filename)
+    print(f"Timing statistics appended to {timing_csv_filename}")
 
     if plot_step_size == 0:
         return aggregated_fitness
@@ -328,5 +345,8 @@ def plot_multi_strategy_test_from_csv(csv_filename):
 
 # evolve_multi(30, 10, 1000, 500, 50)
 
-multi_strategy_test(30, 1000, 500, 50)
-plot_multi_strategy_test_from_csv("fitness_data.csv")
+try:
+    multi_strategy_test(30, 1000, 500, 75)
+    plot_multi_strategy_test_from_csv("fitness_data.csv")
+except Exception as e:
+    print(e)
