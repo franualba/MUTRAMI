@@ -135,10 +135,13 @@ La estrategia de evolución principal adoptada consiste en:
 
 Con el propósito de investigar la mejor relación entre exploración y explotación del algoritmo, se experimenta con distintas estrategias de recombinación, identificadas de la siguiente forma:
 
-1. **Estrategia 0**: se utiliza siempre recombinación de un solo punto
-2. **Estrategia 1**: se utiliza siempre recombinación de dos puntos
-3. **Estrategia 2**: del total de generaciones a ejecutar, el primer 20% utiliza recombinación doble y el 80% restante recombinación simple 
-4. **Estrategia 3**: solución aleatoria (no emplea recombinación ni mutación, pero sí elitismo) 
+1. **Estrategia 1**: se utiliza siempre recombinación de un solo punto
+2. **Estrategia 2**: se utiliza siempre recombinación de dos puntos
+3. **Estrategia 3**: del total de generaciones a ejecutar, el primer 20% utiliza recombinación doble y el 80% restante recombinación simple 
+4. **Estrategia 4**: se utiliza siempre recombinación de tres puntos
+5. **Estrategia 5**: se utiliza siempre recombinación de cuatro puntos
+6. **Estrategia 6**: las primeras 200 generaciones utilizan solo recombinación doble, entre las generaciones 201 y 500 se emplea solo recombinación triple, y de la generación 501 en adelante se aplica únicamente recombinación simple.
+7. **Estrategia 7**: solución aleatoria (no emplea recombinación ni mutación, pero sí elitismo) 
 
 A continuación se presentan algunas figuras con los resultados obtenidos:
 
@@ -180,7 +183,7 @@ A continuación se presentan algunas figuras con los resultados obtenidos:
 
 <div align="center">
 
-![](./plots/plot_indsize50_popsize500_gens100_multi_strategy_random_runs30_elitism_random.png)  
+![](./plots/plot_indsize50_popsize500_gens100_multi_strategy_runs30_elitism_random.png)  
 <b>Figura 7.</b> Muestra el rendimiento de cada estrategia como en la Figura 4, pero esta vez empleando elitismo (me quedo con las 2 mejores soluciones de cada generación) e incluyendo también a modo de comparación el rendimiento de una solución aleatoria (la cual no emplea ni recombinación ni mutación, pero si elitismo). Esta prueba consistió en 30 procesos de 100 generaciones cada uno (no 1000), donde cada generación consta de 500 individuos de 50 tonos relativos cada uno
 </div>
 
@@ -196,6 +199,19 @@ Y la siguiente es una tabla que permite visualizar algunos tiempos de ejecución
 | 4          | Solución aleatoria         | 0.1972  | 204.90s      | 6.83s            | 6.67s      | 7.25s     | 0.12s      |
 
 <b>Tabla 1</b>
+
+</div>
+
+<div align="center">
+
+![](./plots/plot_indsize75_popsize500_gens1000_multi_strategy_runs30_elitism_random.png)  
+<b>Figura 8.</b> Se agregan al experimento tres nuevas estrategias de recombinación (4, 5 y 6) y se incrementa la longitud de cada individuo a 75 tonos relativos (es decir, cada individuo ) crece un 50% en tamaño (se ejecutan 30 procesos evolutivos de 1000 generaciones cada uno, con 500 individuos por población y 75 tonos relativos por individuo).
+</div>
+
+<div align="center">
+
+![](./plots/plot_indsize75_popsize500_gens1100_multi_strategy_runs30_elitism_random.png)  
+<b>Figura 9.</b> Mismo experimento que el representado en la Figura 8, pero incrementando el número total de generaciones a 1100 en lugar de 1000 (se ejecutan 30 procesos evolutivos de 1100 generaciones cada uno, con 500 individuos por población y 75 tonos relativos por individuo).
 </div>
 
 ## Análisis de resultados

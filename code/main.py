@@ -346,7 +346,7 @@ def plot_multi_strategy_test_from_csv(csv_filename):
 # evolve_multi(30, 10, 1000, 500, 50)
 
 try:
-    multi_strategy_test(30, 1000, 500, 75)
+    multi_strategy_test(30, 1100, 500, 75)
     plot_multi_strategy_test_from_csv("fitness_data.csv")
 except Exception as e:
     print(e)
