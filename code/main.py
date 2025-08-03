@@ -1,3 +1,4 @@
+
 import zlib
 import time
 import random
@@ -70,7 +71,11 @@ def calculate_fitness(ind_seq, guide_seq):
     ncd2 = calculate_ncd(ind_seq, guide_seq[1])
     return 1 - ((0.5 * ncd1) + (0.5 * ncd2))
 
-def evolve_single(num_generations, pop_size, ind_size, strategy=0, random=False):
+def evolve_single(num_generations, pop_size, ind_size, strategy=0, seed=None):
+    # Set random seeds if provided
+    if seed is not None:
+        random.seed(seed)
+        np.random.seed(seed)
     # Initialize random population
     population0 = generate_random_population(pop_size, ind_size)
 
@@ -154,7 +159,7 @@ def evolve_single(num_generations, pop_size, ind_size, strategy=0, random=False)
     
     return fitness_history, final_sorted_pop[0]
 
-def evolve_multi(num_runs, plot_step_size, num_generations, pop_size, ind_size, strategy, timing_csv_filename="timing_stats.csv"):
+def evolve_multi(num_runs, plot_step_size, num_generations, pop_size, ind_size, strategy, timing_csv_filename="timing_stats.csv", base_seed=None):
     all_fitness_histories = []
     best_individuals = []
     run_times = []
@@ -163,9 +168,13 @@ def evolve_multi(num_runs, plot_step_size, num_generations, pop_size, ind_size, 
     
     for run in range(num_runs):
         print(f"Run {run + 1}/{num_runs}")
-        
+        # Set random seeds for repeatability
+        if base_seed is not None:
+            run_seed = base_seed + run
+            random.seed(run_seed)
+            np.random.seed(run_seed)
         run_start_time = time.time()
-        fitness_history, best_individual = evolve_single(num_generations, pop_size, ind_size, strategy)
+        fitness_history, best_individual = evolve_single(num_generations, pop_size, ind_size, strategy, seed = run_seed if base_seed is not None else None)
         run_end_time = time.time()
         
         run_time = run_end_time - run_start_time
@@ -270,10 +279,12 @@ def plot_fitness_evolution(fitness_history, step_size=1):
     plt.tight_layout()
     plt.show()
 
-def multi_strategy_test(num_runs, num_generations, pop_size, ind_size, save_csv=True, csv_filename="fitness_data.csv"):
+def multi_strategy_test(num_runs, num_generations, pop_size, ind_size, save_csv=True, csv_filename="fitness_data.csv", base_seed=None):
     aggregated_fitnesses_per_strategy = []
     for i in range(7):
-        aggregated_fitness = evolve_multi(num_runs, 0, num_generations, pop_size, ind_size, i)
+        # Use a different base_seed per strategy for full repeatability, or keep the same for all
+        strategy_seed = (base_seed + i * 10000) if base_seed is not None else None
+        aggregated_fitness = evolve_multi(num_runs, 0, num_generations, pop_size, ind_size, i, base_seed = strategy_seed)
         aggregated_fitnesses_per_strategy.append(aggregated_fitness)
     
     best_fitnesses_per_strategy = []
@@ -346,7 +357,9 @@ def plot_multi_strategy_test_from_csv(csv_filename):
 # evolve_multi(30, 10, 1000, 500, 50)
 
 try:
-    multi_strategy_test(30, 1100, 500, 75)
+    multi_strategy_test(30, 1100, 500, 75, base_seed=42)
     plot_multi_strategy_test_from_csv("fitness_data.csv")
 except Exception as e:
     print(e)
+
+
