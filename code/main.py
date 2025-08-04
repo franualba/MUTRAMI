@@ -1,10 +1,10 @@
-
 import zlib
 import time
 import random
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 from features_extractor import replace_pitches_in_midi_file
 from features_extractor import midi_to_relative_pitch_sequence
 import os
@@ -71,11 +71,12 @@ def calculate_fitness(ind_seq, guide_seq):
     ncd2 = calculate_ncd(ind_seq, guide_seq[1])
     return 1 - ((0.5 * ncd1) + (0.5 * ncd2))
 
-def evolve_single(num_generations, pop_size, ind_size, strategy=0, seed=None):
+def evolve_single(num_generations, pop_size, ind_size, strategy = 0, seed = None):
     # Set random seeds if provided
     if seed is not None:
         random.seed(seed)
         np.random.seed(seed)
+        
     # Initialize random population
     population0 = generate_random_population(pop_size, ind_size)
 
@@ -159,7 +160,15 @@ def evolve_single(num_generations, pop_size, ind_size, strategy=0, seed=None):
     
     return fitness_history, final_sorted_pop[0]
 
-def evolve_multi(num_runs, plot_step_size, num_generations, pop_size, ind_size, strategy, timing_csv_filename="timing_stats.csv", base_seed=None):
+def evolve_multi(
+        num_runs, plot_step_size, num_generations, pop_size, ind_size, strategy, 
+        base_seed = None,
+        midi_filename = None,
+        timing_csv_filename = None, 
+        fitness_csv_filename = None, 
+        boxplot_csv_filename = None
+        ):
+    
     all_fitness_histories = []
     best_individuals = []
     run_times = []
@@ -168,13 +177,16 @@ def evolve_multi(num_runs, plot_step_size, num_generations, pop_size, ind_size, 
     
     for run in range(num_runs):
         print(f"Run {run + 1}/{num_runs}")
+
         # Set random seeds for repeatability
         if base_seed is not None:
             run_seed = base_seed + run
             random.seed(run_seed)
             np.random.seed(run_seed)
+
         run_start_time = time.time()
-        fitness_history, best_individual = evolve_single(num_generations, pop_size, ind_size, strategy, seed = run_seed if base_seed is not None else None)
+        fitness_history, best_individual = evolve_single(num_generations, pop_size, ind_size, strategy, 
+                                                         seed = run_seed if base_seed is not None else None)
         run_end_time = time.time()
         
         run_time = run_end_time - run_start_time
@@ -186,7 +198,7 @@ def evolve_multi(num_runs, plot_step_size, num_generations, pop_size, ind_size, 
     total_end_time = time.time()
     total_time = total_end_time - total_start_time
     
-    # Aggregate fitness data across all runs for plotting
+    # Aggregate fitness data across all runs for plotting and statistics
     aggregated_fitness = []
     for gen in range(num_generations):
         gen_fitness = []
@@ -196,38 +208,106 @@ def evolve_multi(num_runs, plot_step_size, num_generations, pop_size, ind_size, 
         
     # Find the best individual across all runs
     best_run_individual = max(best_individuals, key=lambda x: x[1])
-    replace_pitches_in_midi_file(best_run_individual[0], midi_input_1, strategy)
-    print("Created MIDI file using best individual's pitches")
-    print(f"Best fit after {num_generations} generations across {num_runs} runs: {best_run_individual[1]}")
+
+    if midi_filename:
+        replace_pitches_in_midi_file(best_run_individual[0], midi_input_1, midi_filename)
+        print(f"Created MIDI file: {midi_filename}")
+    else:
+        replace_pitches_in_midi_file(best_run_individual[0], midi_input_1, strategy)
+        print("Created MIDI file using best individual's pitches")
+        
+    print(f"Best fit after {num_generations} generations across {num_runs} runs: {round(best_run_individual[1], 4)}")
 
     # Prepare current strategy timing statistics
     strategy_name = f"Strategy {strategy+1}"
+    def fmt(sec):
+        return f"{round(sec,1)}s ({round(sec/60,1)}min)"
     timing_col = pd.Series({
-        "Total execution time (s)": total_time,
-        "Total execution time (min)": total_time / 60,
-        "Average time per run (s)": np.mean(run_times),
-        "Average time per run (min)": np.mean(run_times) / 60,
-        "Fastest run (s)": min(run_times),
-        "Fastest run (min)": min(run_times) / 60,
-        "Slowest run (s)": max(run_times),
-        "Slowest run (min)": max(run_times) / 60,
-        "Standard deviation (s)": np.std(run_times),
-        "Best fitness": best_run_individual[1]
+        "Total execution time": fmt(total_time),
+        "Average time per run": fmt(np.mean(run_times)),
+        "Fastest run": fmt(min(run_times)),
+        "Slowest run": fmt(max(run_times)),
+        "Standard deviation": fmt(np.std(run_times)),
+        "Best fitness": round(best_run_individual[1], 4)
     }, name=strategy_name)
 
-    # Append or create CSV file where each strategy is a column
-    if os.path.exists(timing_csv_filename):
-        df_timing = pd.read_csv(timing_csv_filename, index_col=0)
-        df_timing[strategy_name] = timing_col
-    else:
-        df_timing = pd.DataFrame(timing_col)
-    df_timing.to_csv(timing_csv_filename)
-    print(f"Timing statistics appended to {timing_csv_filename}")
+    # Save strategy timing statistics
+    if timing_csv_filename:
+        if os.path.exists(timing_csv_filename):
+            df_timing = pd.read_csv(timing_csv_filename, index_col=0)
+            df_timing[strategy_name] = timing_col
+        else:
+            df_timing = pd.DataFrame(timing_col)
+        df_timing.to_csv(timing_csv_filename)
+        print(f"Timing statistics appended to {timing_csv_filename}")
+
+    # Save strategy fitness statistics per generation
+    if fitness_csv_filename:
+        fitness_stats = []
+        for gen, gen_fitness in enumerate(aggregated_fitness):
+            fitness_stats.append({
+                "Generation": gen+1,
+                "Best": round(np.max(gen_fitness), 4),
+                "Mean": round(np.mean(gen_fitness), 4),
+                "Std": round(np.std(gen_fitness), 4),
+                "Min": round(np.min(gen_fitness), 4),
+                "Max": round(np.max(gen_fitness), 4)
+            })
+        df_fitness = pd.DataFrame(fitness_stats)
+        df_fitness.to_csv(fitness_csv_filename, index=False)
+        print(f"Fitness statistics saved to {fitness_csv_filename}")
 
     if plot_step_size == 0:
         return aggregated_fitness
     else:
-        plot_fitness_evolution(aggregated_fitness, plot_step_size)
+        # Save aggregated fitness values to CSV for boxplot
+        if boxplot_csv_filename:
+            df_box = pd.DataFrame([[round(val, 4) for val in gen] for gen in aggregated_fitness])
+            df_box = df_box.transpose()
+            df_box.to_csv(boxplot_csv_filename, index=False)
+            print(f"Aggregated fitness values saved to {boxplot_csv_filename}")
+            plot_fitness_boxplot_from_csv(boxplot_csv_filename, step_size = plot_step_size)
+        else:
+            plot_fitness_evolution(aggregated_fitness, plot_step_size)
+
+def multi_strategy_test(num_runs, num_generations, pop_size, ind_size, save_csv=True, base_seed=None):
+    aggregated_fitnesses_per_strategy = []
+    # Compose experiment info for filenames
+    exp_info = f"{num_runs}runs_{pop_size}pop_{ind_size}ind_{num_generations}gen"
+    timing_csv_filename = f"timing_{exp_info}.csv"
+    fitness_csv_filenames = []
+    midi_filenames = []
+
+    for i in range(7):
+        strategy_name = f"strategy{i+1}"
+        fitness_csv_filename = f"fitness_{strategy_name}_{exp_info}.csv"
+        midi_filename = f"best_evolution_output_{strategy_name}_{exp_info}.mid"
+        fitness_csv_filenames.append(fitness_csv_filename)
+        midi_filenames.append(midi_filename)
+        # Use a different base_seed per strategy for full repeatability, or keep the same for all
+        strategy_seed = (base_seed + i * 10000) if base_seed is not None else None
+        aggregated_fitness = evolve_multi(
+            num_runs, 0, num_generations, pop_size, ind_size, i,
+            base_seed = strategy_seed,
+            midi_filename = midi_filename,
+            timing_csv_filename = timing_csv_filename,
+            fitness_csv_filename = fitness_csv_filename
+        )
+        aggregated_fitnesses_per_strategy.append(aggregated_fitness)
+    
+    best_fitnesses_per_strategy = []
+    for strategy in aggregated_fitnesses_per_strategy:
+        best_fitnesses = [round(max(strategy[j]), 4) for j in range(len(strategy))]
+        best_fitnesses_per_strategy.append(best_fitnesses)
+    
+    # Save best fitnesses per generation for all strategies in one CSV
+    if save_csv:
+        df = pd.DataFrame()
+        for k, strategy_fitnesses in enumerate(best_fitnesses_per_strategy):
+            df[f"Strategy {k+1}"] = strategy_fitnesses
+        fitness_csv_filename = f"fitness_all_{exp_info}.csv"
+        df.to_csv(fitness_csv_filename, index=False)
+        print(f"Best fitness per generation for all strategies saved to {fitness_csv_filename}")
 
 def plot_fitness_evolution(fitness_history, step_size=1):
     # Filter fitness history based on step size
@@ -279,45 +359,6 @@ def plot_fitness_evolution(fitness_history, step_size=1):
     plt.tight_layout()
     plt.show()
 
-def multi_strategy_test(num_runs, num_generations, pop_size, ind_size, save_csv=True, csv_filename="fitness_data.csv", base_seed=None):
-    aggregated_fitnesses_per_strategy = []
-    for i in range(7):
-        # Use a different base_seed per strategy for full repeatability, or keep the same for all
-        strategy_seed = (base_seed + i * 10000) if base_seed is not None else None
-        aggregated_fitness = evolve_multi(num_runs, 0, num_generations, pop_size, ind_size, i, base_seed = strategy_seed)
-        aggregated_fitnesses_per_strategy.append(aggregated_fitness)
-    
-    best_fitnesses_per_strategy = []
-    for strategy in aggregated_fitnesses_per_strategy:
-        best_fitnesses = [max(strategy[j]) for j in range(len(strategy))]
-        best_fitnesses_per_strategy.append(best_fitnesses)
-    
-    # Save data to CSV
-    if save_csv:
-        df = pd.DataFrame()
-        for k, strategy_fitnesses in enumerate(best_fitnesses_per_strategy):
-            df[f"Strategy {k+1}"] = strategy_fitnesses
-        df.to_csv(csv_filename, index=False)
-        print(f"Fitness data saved to {csv_filename}")
-
-    # # Setup plotting
-    # plt.figure(figsize=(12,8))
-    # plt.xlabel('Generation', fontsize=12)
-    # plt.ylabel('Fitness Value', fontsize=12)
-    # plt.title('Evolution of Fitness Values Across Generations (Multiple Runs)', fontsize=14, fontweight='bold')
-    # plt.grid(True, alpha=0.3)
-
-    # # Plot trend line for each strategy
-    # generations_x = range(1, len(aggregated_fitnesses_per_strategy[0]) + 1)
-    # k = 1
-    # for strategy_fitnesses in best_fitnesses_per_strategy: 
-    #     plt.plot(generations_x, strategy_fitnesses, linewidth=2, alpha=0.8, label=f"Best Fitness Strategy {k}")
-    #     k += 1
-
-    # plt.legend()
-    # plt.tight_layout()
-    # plt.show()
-
 def plot_multi_strategy_test_from_csv(csv_filename):
     # Load data from CSV file
     df = pd.read_csv(csv_filename)
@@ -335,6 +376,83 @@ def plot_multi_strategy_test_from_csv(csv_filename):
         plt.plot(generations_x, df[column], linewidth=2, alpha=0.8, label=f"Best Fitness {column}")
 
     plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+def plot_strategy_fitness_stats_from_csv(fitness_csv_filename, strategy_name=None):
+    """
+    Plots best, mean, std deviation, min, and max fitness values per generation for a given strategy.
+    """
+    df = pd.read_csv(fitness_csv_filename)
+    generations = df["Generation"]
+
+    plt.figure(figsize=(12, 8))
+    plt.plot(generations, df["Best"], label="Best", color="red", linewidth=2)
+    plt.plot(generations, df["Mean"], label="Mean", color="blue", linestyle="--", linewidth=2)
+    plt.plot(generations, df["Std"], label="Std Dev", color="orange", linestyle=":", linewidth=2)
+    plt.plot(generations, df["Min"], label="Min", color="green", linestyle="-.", linewidth=2)
+    plt.plot(generations, df["Max"], label="Max", color="purple", linestyle=":", linewidth=2)
+
+    plt.xlabel("Generation", fontsize=12)
+    plt.ylabel("Fitness Value", fontsize=12)
+    title = f"Fitness Statistics per Generation"
+    if strategy_name:
+        title += f" ({strategy_name})"
+    plt.title(title, fontsize=14, fontweight="bold")
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.show()
+
+def plot_fitness_boxplot_from_csv(csv_filename, step_size=1):
+    """
+    Plots a boxplot of fitness values per generation from a CSV file,
+    suppressing outlier points and shading the outlier area.
+    """
+    df = pd.read_csv(csv_filename)
+    # Each column is a generation, each row is a run
+    data = [df[col].dropna().values for col in df.columns]
+    # Filter by step_size
+    data = data[::step_size]
+    generations = list(range(1, len(data) + 1))
+
+    plt.figure(figsize=(12, 8))
+    box = plt.boxplot(data, patch_artist=True, showfliers=False)
+
+    # Color boxes
+    colors = plt.cm.viridis(np.linspace(0, 1, len(data)))
+    for patch, color in zip(box['boxes'], colors):
+        patch.set_facecolor(color)
+        patch.set_alpha(0.7)
+
+    # Calculate and shade outlier areas
+    for i, gen_data in enumerate(data):
+        # Calculate quartiles and whiskers as matplotlib does
+        q1 = np.percentile(gen_data, 25)
+        q3 = np.percentile(gen_data, 75)
+        iqr = q3 - q1
+        lower_whisker = np.min(gen_data[gen_data >= q1 - 1.5 * iqr])
+        upper_whisker = np.max(gen_data[gen_data <= q3 + 1.5 * iqr])
+        min_outlier = np.min(gen_data)
+        max_outlier = np.max(gen_data)
+        # Shade lower outlier area if any
+        if min_outlier < lower_whisker:
+            plt.fill_between([i+1-0.3, i+1+0.3], min_outlier, lower_whisker, color='red', alpha=0.15)
+        # Shade upper outlier area if any
+        if max_outlier > upper_whisker:
+            plt.fill_between([i+1-0.3, i+1+0.3], upper_whisker, max_outlier, color='purple', alpha=0.15)
+
+    plt.xlabel('Generation', fontsize=12)
+    plt.ylabel('Fitness Value', fontsize=12)
+    plt.title('Fitness Value Distribution Across Generations (Boxplot, Outlier Areas Shaded)', fontsize=14, fontweight='bold')
+    plt.grid(True, alpha=0.3)
+    generation_labels = [f'Gen {i}' for i in range(0, len(data)*step_size, step_size)]
+    plt.xticks(range(1, len(generation_labels) + 1), generation_labels, rotation=45)
+
+    # Legend for shaded areas
+    lower_patch = mpatches.Patch(color='red', alpha=0.15, label='Lower Outlier Area')
+    upper_patch = mpatches.Patch(color='purple', alpha=0.15, label='Upper Outlier Area')
+    plt.legend(handles=[lower_patch, upper_patch])
     plt.tight_layout()
     plt.show()
 
@@ -357,8 +475,15 @@ def plot_multi_strategy_test_from_csv(csv_filename):
 # evolve_multi(30, 10, 1000, 500, 50)
 
 try:
-    multi_strategy_test(30, 1100, 500, 75, base_seed=42)
-    plot_multi_strategy_test_from_csv("fitness_data.csv")
+    # multi_strategy_test(30, 100, 100, 50, base_seed=42)
+    # You can now plot from the new CSVs as needed
+    # plot_multi_strategy_test_from_csv("exp_fitness_all_30runs_500pop_75ind_1100gen.csv")
+    # plot_strategy_fitness_stats_from_csv("exp_fitness_strategy4_30runs_100pop_50ind_100gen.csv")
+    # plot_strategy_fitness_stats_from_csv("exp_fitness_strategy5_30runs_100pop_50ind_100gen.csv")
+    evolve_multi(30, 10, 1000, 500, 50, 0, 
+                 timing_csv_filename = "timing_stats_indsize50_popsize500_gens1000_strategy1_runs30.csv",
+                 fitness_csv_filename = "fitness_stats_indsize50_popsize500_gens1000_strategy1_runs30.csv",
+                 boxplot_csv_filename = "aggregated_fitness_indsize50_popsize500_gens1000_strategy1_runs30.csv")
 except Exception as e:
     print(e)
 

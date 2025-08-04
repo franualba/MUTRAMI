@@ -80,7 +80,7 @@ def notes_to_midi(notes, output_path):
     midi_data.write(output_path)
 
 # Replace pitches in a given MIDI file with the ones obtained by the genetic algorithm 
-def replace_pitches_in_midi_file(pitch_seq, midi_file_path, strategy_num):
+def replace_pitches_in_midi_file(pitch_seq, midi_file_path, midi_filename):
     midi_base = pretty_midi.PrettyMIDI(midi_file_path)
     base_notes = midi_base.instruments[0].notes
     midi_output = pretty_midi.PrettyMIDI()
@@ -94,7 +94,7 @@ def replace_pitches_in_midi_file(pitch_seq, midi_file_path, strategy_num):
         )
         instrument.notes.append(note)
     midi_output.instruments.append(instrument)
-    midi_output.write(f"../midi_files/evolution_output_strategy_{strategy_num}.mid")
+    midi_output.write(f"../midi_files/{midi_filename}.mid")
 
 ### Testing zone ###
 
