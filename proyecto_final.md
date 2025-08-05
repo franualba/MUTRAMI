@@ -402,6 +402,8 @@ Con el propósito de investigar la mejor relación entre exploración y explotac
 6. **Estrategia 6**: las primeras 200 generaciones utilizan solo recombinación doble, entre las generaciones 201 y 500 se emplea solo recombinación triple, y de la generación 501 en adelante se aplica únicamente recombinación simple.
 7. **Estrategia 7**: solución aleatoria (no emplea recombinación ni mutación, pero sí elitismo) 
 
+&nbsp;
+
 A continuación se presentan las figuras con los resultados obtenidos:
 
 <div align="center">
