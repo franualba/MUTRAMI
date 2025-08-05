@@ -270,7 +270,7 @@ def evolve_multi(
         else:
             plot_fitness_evolution(aggregated_fitness, plot_step_size)
 
-def multi_strategy_test(num_runs, num_generations, pop_size, ind_size, save_csv=True, base_seed=None):
+def multi_strategy_test(num_runs, num_generations, pop_size, ind_size, save_csv = True, base_seed = None):
     aggregated_fitnesses_per_strategy = []
     # Compose experiment info for filenames
     exp_info = f"{num_runs}runs_{pop_size}pop_{ind_size}ind_{num_generations}gen"
@@ -379,7 +379,7 @@ def plot_multi_strategy_test_from_csv(csv_filename):
     plt.tight_layout()
     plt.show()
 
-def plot_strategy_fitness_stats_from_csv(fitness_csv_filename, strategy_name=None):
+def plot_strategy_fitness_stats_from_csv(fitness_csv_filename, strategy_name = None):
     """
     Plots best, mean, std deviation, min, and max fitness values per generation for a given strategy.
     """
@@ -475,15 +475,13 @@ def plot_fitness_boxplot_from_csv(csv_filename, step_size=1):
 # evolve_multi(30, 10, 1000, 500, 50)
 
 try:
-    # multi_strategy_test(30, 100, 100, 50, base_seed=42)
-    # You can now plot from the new CSVs as needed
-    # plot_multi_strategy_test_from_csv("exp_fitness_all_30runs_500pop_75ind_1100gen.csv")
-    # plot_strategy_fitness_stats_from_csv("exp_fitness_strategy4_30runs_100pop_50ind_100gen.csv")
-    # plot_strategy_fitness_stats_from_csv("exp_fitness_strategy5_30runs_100pop_50ind_100gen.csv")
-    evolve_multi(30, 10, 1000, 500, 50, 0, 
-                 timing_csv_filename = "timing_stats_indsize50_popsize500_gens1000_strategy1_runs30.csv",
-                 fitness_csv_filename = "fitness_stats_indsize50_popsize500_gens1000_strategy1_runs30.csv",
-                 boxplot_csv_filename = "aggregated_fitness_indsize50_popsize500_gens1000_strategy1_runs30.csv")
+    # multi_strategy_test(30, 1000, 500, 75, base_seed = 42)    
+    # plot_multi_strategy_test_from_csv("fitness_all_30runs_500pop_75ind_1000gen.csv")
+    plot_strategy_fitness_stats_from_csv("fitness_strategy5_30runs_500pop_75ind_1000gen.csv")
+    # evolve_multi(30, 10, 1000, 500, 50, 0, 
+    #              timing_csv_filename = "timing_stats_indsize50_popsize500_gens1000_strategy1_runs30.csv",
+    #              fitness_csv_filename = "fitness_stats_indsize50_popsize500_gens1000_strategy1_runs30.csv",
+    #              boxplot_csv_filename = "aggregated_fitness_indsize50_popsize500_gens1000_strategy1_runs30.csv")
 except Exception as e:
     print(e)
 

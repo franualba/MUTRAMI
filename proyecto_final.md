@@ -78,6 +78,24 @@ Los **intervalos** son las distancias entre dos notas musicales, medidas en semi
 - **Reducción de espacio de búsqueda**: el algoritmo puede enfocarse en las relaciones melódicas sin preocuparse por la tonalidad absoluta.
 - **Facilidad de transposición**: las melodías pueden transponerse fácilmente sumando una constante a todos los valores tonales.
 
+### 1.4 Duraciones de las Notas Musicales
+
+En notación musical, cada nota no solo tiene una altura (tono), sino también una duración específica, que indica cuánto tiempo debe sonar. Las duraciones básicas de las notas en la música occidental se representan mediante figuras, cada una con un valor relativo respecto al pulso o tiempo base (generalmente la negra):
+
+- **Redonda**: equivale a 4 tiempos.
+- **Blanca**: equivale a 2 tiempos.
+- **Negra**: equivale a 1 tiempo.
+- **Corchea**: equivale a 1/2 tiempo.
+- **Semicorchea**: equivale a 1/4 de tiempo.
+- **Fusa**: equivale a 1/8 de tiempo.
+- **Semifusa**: equivale a 1/16 de tiempo.
+
+Además, existen figuras con puntillo (que aumentan la duración de la nota en la mitad de su valor original) y ligaduras que permiten unir varias notas para prolongar su duración.
+
+En los archivos MIDI empleados en el presente trabajo, la duración de cada nota se especifica en "ticks" o unidades de tiempo relativas al tempo de la pieza, permitiendo representar tanto duraciones estándar como valores intermedios o irregulares.
+
+Siendo la intención simplemente describir brevemente este aspecto básico de la teoría musical para enfatizar su relevancia, resulta importante remarcar que el control de la duración de las notas es fundamental para definir el ritmo y la expresividad de una melodía, aunque en este proyecto se ha optado por trabajar en una primera etapa únicamente con la secuencia de alturas o tonos, omitiendo la variación en las duraciones para simplificar el análisis y la generación musical.
+
 ### 2. PROTOCOLO MIDI
 
 El protocolo **MIDI** (Musical Instrument Digital Interface) permite comunicar instrumentos musicales electrónicos con computadoras y otros equipos similares. Fue desarrollado en la década de 1980 y se ha convertido actualmente en el estándar de facto para la representación digital de música, debido principalmente las siguientes características [9]:
@@ -306,7 +324,47 @@ Considerando que aplicamos esta métrica entonces para evaluar el grado de simil
 
 Para su uso en la función de fitness, se opta por invertir la relación anterior, de forma que, a mayor valor de fitness (es decir, un valor de dicha función más cercano a uno), indique mayor similitud entre las secuencias y por lo tanto mayor valor de aptitud.
 
+### 5. ALGORITMO DE COMPRESIÓN
+
+En cuanto al algoritmo de compresión específico mencionado en el apartado anterior para calcular la NCD, basándonos en lo estudiado en [4] y [5] se llega a la conclusión de que LZ77 aventaja a otros algoritmos como LZ78 y COSIATEC en la compresión de datos secuenciales y en su eficiencia de implementación. LZ77 trabaja identificando y reemplazando repeticiones de cadenas de datos dentro de una ventana deslizante, lo que lo hace especialmente adecuado para flujos de datos donde los patrones repetitivos son frecuentes. En comparación, LZ78 genera un diccionario explícito de cadenas, lo que puede incrementar el uso de memoria y complejidad en la gestión del diccionario, especialmente en aplicaciones en tiempo real o con recursos limitados.
+
+Por otro lado, algoritmos como COSIATEC están diseñados específicamente para la detección de patrones musicales y análisis estructural, pero no están optimizados para la compresión general de datos ni cuentan con implementaciones ampliamente soportadas y optimizadas para entornos de producción.
+
+En cuanto a la implementación, la librería zlib fue elegida frente a alternativas como gzip o lz4 principalmente debido a que zlib ofrece una interfaz flexible y multiplataforma, permitiendo ajustar el nivel de compresión según las necesidades del proyecto en caso de necesitarlo. En la práctica, zlib implementa el algoritmo DEFLATE, basado en LZ77, el cual es ampliamente reconocido por su equilibrio entre velocidad y relación de compresión. Aunque gzip también utiliza DEFLATE, su enfoque está más orientado a la compresión de archivos completos y no ofrece la misma flexibilidad de integración en aplicaciones como zlib. Por su parte, lz4 prioriza la velocidad de compresión y descompresión, pero sacrifica el ratio de compresión, lo que puede resultar en archivos más grandes. [6]
+
+En resumen, la elección de LZ77 y la librería zlib responde a la búsqueda de un algoritmo eficiente, ampliamente soportado, con buena relación entre velocidad y compresión, y fácil de integrar en aplicaciones modernas, superando en estos aspectos a LZ78, COSIATEC, gzip y lz4 para los objetivos específicos del proyecto.
+
 ## Diseño Experimental
+
+### Métricas de Evaluación
+
+Para determinar el rendimiento del algoritmo genético propuesto, se emplearon las siguientes métricas principales:
+
+- **Mejor valor de fitness alcanzado**: se registra el mayor valor de fitness obtenido por la mejor solución de cada ejecución, lo que indica el grado de similitud máxima lograda respecto a las melodías guía.
+- **Promedio y desviación estándar del fitness**: se calcula el promedio y la dispersión de los valores de fitness a lo largo de las ejecuciones para evaluar la estabilidad y robustez del algoritmo.
+- **Tiempos de ejecución**: se mide el tiempo total y el tiempo promedio por ejecución para comparar la eficiencia computacional de cada estrategia.
+- **Curvas de convergencia**: se grafican los valores de fitness a lo largo de las generaciones para analizar la velocidad de convergencia y el comportamiento evolutivo de las distintas estrategias.
+
+Estas métricas buscan comparar objetivamente el desempeño de las diferentes variantes del algoritmo y analizar el impacto de los parámetros y operadores utilizados.
+
+### Herramientas Utilizadas
+
+El desarrollo y la experimentación del proyecto se realizaron utilizando las siguientes herramientas:
+
+- **Lenguaje de programación**: Python 3.10
+- **Librerías principales**:
+    - `numpy`: para operaciones numéricas y manejo eficiente de arreglos.
+    - `matplotlib`: para la generación de gráficos y visualización de resultados.
+    - `pretty-midi`: para la manipulación y análisis de archivos MIDI.
+    - `zlib`: para la compresión de secuencias y cálculo de la NCD.
+    - `random`: para la generación de números aleatorios y selección de individuos.
+    - `time`: para la medición de tiempos de ejecución.
+- **Entorno de desarrollo**: VS Code.
+- **Sistema operativo**: Windows 11
+
+Estas herramientas permitieron implementar, ejecutar y analizar el algoritmo de manera eficiente, facilitando la experimentación y la obtención de resultados reproducibles.
+
+### Detalle de los Experimentos Realizados
 
 Para poner a prueba el rendimiento del algoritmo planteado se establecieron como punto de partida los siguientes lineamientos:
 
@@ -319,7 +377,9 @@ Para poner a prueba el rendimiento del algoritmo planteado se establecieron como
 7. Se utiliza un tamaño de población de 500 individuos.
 8. Se ejecuta 30 veces cada proceso evolutivo con el objetivo de obtener resultados más representativos del rendimiento de una estrategia. Por ejemplo, si una estrategia se ejecuta a lo largo de 100 generaciones, se repite 30 veces cada proceso de 100 generaciones y se agregan los resultados de cada generación al final para su posterior evaluación.
 
-La estrategia de evolución principal adoptada consiste en:
+A partir de estas disposiciones iniciales, se fue experimentando con distintos valores para algunos parámetros, puntualmente el número de individuos, el tamaño de la población y el número de generaciones.
+
+A modo de recordatorio, la estrategia de evolución principal adoptada consiste en:
 1. Inicializar una población en forma aleatoria.
 2. Calcular el valor de fitness de cada individuo y ordenar la población en forma descendente de acuerdo a este valor.
 3. Eliminar el 25% menos apto de individuos de la población.
@@ -337,7 +397,7 @@ Con el propósito de investigar la mejor relación entre exploración y explotac
 6. **Estrategia 6**: las primeras 200 generaciones utilizan solo recombinación doble, entre las generaciones 201 y 500 se emplea solo recombinación triple, y de la generación 501 en adelante se aplica únicamente recombinación simple.
 7. **Estrategia 7**: solución aleatoria (no emplea recombinación ni mutación, pero sí elitismo) 
 
-A continuación se presentan algunas figuras con los resultados obtenidos:
+A continuación se presentan las figuras con los resultados obtenidos:
 
 <div align="center">
 
@@ -375,11 +435,17 @@ A continuación se presentan algunas figuras con los resultados obtenidos:
 <b>Figura 6.</b> Muestra el rendimiento de cada estrategia como en la Figura 4, pero esta vez empleando elitismo (me quedo con las 2 mejores soluciones de cada generación) e incluyendo también a modo de comparación el rendimiento de una solución aleatoria (la cual no emplea ni recombinación ni mutación, pero si elitismo). Esta prueba consistió en 30 procesos de 100 generaciones cada uno (no 1000), donde cada generación consta de 500 individuos de 50 tonos relativos cada uno
 </div>
 
-Y la siguiente es una tabla que permite visualizar algunos tiempos de ejecución de cada estrategia junto con el mejor valor de fitness obtenido:
+<div align="center">
+
+![](./plots/plot_indsize75_popsize500_gens1000_multi_strategy_runs30_elitism_random.png)  
+<b>Figura 7.</b> Se agregan al experimento tres nuevas estrategias de recombinación (4, 5 y 6) y se incrementa la longitud de cada individuo a 75 tonos relativos (es decir, cada individuo crece un 50% en tamaño). Se ejecutan 30 procesos evolutivos de 1000 generaciones cada uno, con 500 individuos por población y 75 tonos relativos por individuo.
+</div>
+
+La siguiente es una tabla que permite visualizar los tiempos de ejecución de cada estrategia junto con el mejor valor de fitness obtenido:
 
 <div align="center">
 
-| Estrategia | Descripción | Best Fitness | Tiempo Total | Tiempo Promedio | Más Rápida | Más Lenta | Desv. Est. |
+| Estrategia | Descripción | Mejor Fitness | Tiempo Total | Tiempo Promedio | Más Rápida | Más Lenta | Desv. Est. |
 |:------------:|:----------------------------:|:--------------:|:-----------------:|:------------:|:-----------:|:------------:|:------------:|
 | 1          | Recombinación simple       | 0.2746  | 234.75s      | 7.82s            | 7.37s      | 8.39s     | 0.21s      |
 | 2          | Recombinación doble        | 0.2908  | 256.74s      | 8.56s            | 7.19s      | 13.97s    | 1.51s      |
@@ -390,17 +456,6 @@ Y la siguiente es una tabla que permite visualizar algunos tiempos de ejecución
 
 </div>
 
-<div align="center">
-
-![](./plots/plot_indsize75_popsize500_gens1000_multi_strategy_runs30_elitism_random.png)  
-<b>Figura 8.</b> Se agregan al experimento tres nuevas estrategias de recombinación (4, 5 y 6) y se incrementa la longitud de cada individuo a 75 tonos relativos (es decir, cada individuo ) crece un 50% en tamaño (se ejecutan 30 procesos evolutivos de 1000 generaciones cada uno, con 500 individuos por población y 75 tonos relativos por individuo).
-</div>
-
-<div align="center">
-
-![](./plots/plot_indsize75_popsize500_gens1100_multi_strategy_runs30_elitism_random.png)  
-<b>Figura 9.</b> Mismo experimento que el representado en la Figura 8, pero incrementando el número total de generaciones a 1100 en lugar de 1000 (se ejecutan 30 procesos evolutivos de 1100 generaciones cada uno, con 500 individuos por población y 75 tonos relativos por individuo).
-</div>
 
 ## Análisis de resultados
 
