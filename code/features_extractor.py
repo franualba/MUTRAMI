@@ -96,6 +96,27 @@ def replace_pitches_in_midi_file(pitch_seq, midi_file_path, midi_filename):
     midi_output.instruments.append(instrument)
     midi_output.write(f"../midi_files/{midi_filename}.mid")
 
+def midi_to_duration_sequence(midi_file_path):
+    midi_data = pretty_midi.PrettyMIDI(midi_file_path)
+    durations = [note.end - note.start for note in midi_data.instruments[0].notes]
+    return durations
+
+def replace_durations_in_midi_file(duration_seq, midi_file_path, midi_filename):
+    midi_base = pretty_midi.PrettyMIDI(midi_file_path)
+    base_notes = midi_base.instruments[0].notes
+    midi_output = pretty_midi.PrettyMIDI()
+    instrument = pretty_midi.Instrument(program = midi_base.instruments[0].program)
+    for i in range(len(duration_seq)):
+        note = pretty_midi.Note(
+            pitch = base_notes[i].pitch,
+            velocity = base_notes[i].velocity,
+            start = base_notes[i].start,
+            end = base_notes[i].start + max(0.05, duration_seq[i])  # avoid zero/negative durations
+        )
+        instrument.notes.append(note)
+    midi_output.instruments.append(instrument)
+    midi_output.write(f"../midi_files/{midi_filename}.mid")
+
 ### Testing zone ###
 
 # notes = midi_to_notes(midi_input_2)

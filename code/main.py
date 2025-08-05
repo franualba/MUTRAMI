@@ -1,3 +1,4 @@
+import os
 import zlib
 import time
 import random
@@ -5,9 +6,12 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-from features_extractor import replace_pitches_in_midi_file
-from features_extractor import midi_to_relative_pitch_sequence
-import os
+from features_extractor import (
+    replace_pitches_in_midi_file,
+    midi_to_relative_pitch_sequence,
+    midi_to_duration_sequence,
+    replace_durations_in_midi_file
+)
 
 midi_input_1 = "../midi_files/mel1.mid"
 midi_input_2 = "../midi_files/mel2.mid"
@@ -49,10 +53,13 @@ def quadruple_point_crossover(parent1, parent2):
     new_parent2 = parent2[:points[0]] + parent1[points[0]:points[1]] + parent2[points[1]:points[2]] + parent1[points[2]:points[3]] + parent2[points[3]:]
     return [new_parent1, new_parent2]
 
-def generate_random_population(pop_size, ind_length):
+def generate_random_population(pop_size, ind_length, mode = 'pitch'):
     population = []
     for _ in range(pop_size):
-        individual = [random.randint(-20, 20) for _ in range(ind_length)]
+        if mode == 'pitch':
+            individual = [random.randint(-20, 20) for _ in range(ind_length)]
+        elif mode == 'duration':
+            individual = [random.uniform(0.05, 1.0) for _ in range(ind_length)]  # durations in seconds
         population.append(individual)
     return population
 
@@ -71,18 +78,22 @@ def calculate_fitness(ind_seq, guide_seq):
     ncd2 = calculate_ncd(ind_seq, guide_seq[1])
     return 1 - ((0.5 * ncd1) + (0.5 * ncd2))
 
-def evolve_single(num_generations, pop_size, ind_size, strategy = 0, seed = None):
+def evolve_single(num_generations, pop_size, ind_size, strategy = 0, seed = None, mode = 'pitch'):
     # Set random seeds if provided
     if seed is not None:
         random.seed(seed)
         np.random.seed(seed)
         
     # Initialize random population
-    population0 = generate_random_population(pop_size, ind_size)
+    population0 = generate_random_population(pop_size, ind_size, mode=mode)
 
     # Create guide sequences list
-    guide_seq1 = midi_to_relative_pitch_sequence(midi_input_1)
-    guide_seq2 = midi_to_relative_pitch_sequence(midi_input_2)
+    if mode == 'pitch':
+        guide_seq1 = midi_to_relative_pitch_sequence(midi_input_1)
+        guide_seq2 = midi_to_relative_pitch_sequence(midi_input_2)
+    elif mode == 'duration':
+        guide_seq1 = midi_to_duration_sequence(midi_input_1)
+        guide_seq2 = midi_to_duration_sequence(midi_input_2)
     guide_list = [guide_seq1, guide_seq2]
 
     # Calculate fitness value for each individual in the random population
@@ -166,7 +177,8 @@ def evolve_multi(
         midi_filename = None,
         timing_csv_filename = None, 
         fitness_csv_filename = None, 
-        boxplot_csv_filename = None
+        boxplot_csv_filename = None,
+        mode = 'pitch'
         ):
     
     all_fitness_histories = []
@@ -185,8 +197,11 @@ def evolve_multi(
             np.random.seed(run_seed)
 
         run_start_time = time.time()
-        fitness_history, best_individual = evolve_single(num_generations, pop_size, ind_size, strategy, 
-                                                         seed = run_seed if base_seed is not None else None)
+        fitness_history, best_individual = evolve_single(
+            num_generations, pop_size, ind_size, strategy, 
+            seed = run_seed if base_seed is not None else None, 
+            mode = mode
+            )
         run_end_time = time.time()
         
         run_time = run_end_time - run_start_time
@@ -207,13 +222,19 @@ def evolve_multi(
         aggregated_fitness.append(gen_fitness)
         
     # Find the best individual across all runs
-    best_run_individual = max(best_individuals, key=lambda x: x[1])
+    best_run_individual = max(best_individuals, key = lambda x: x[1])
 
     if midi_filename:
-        replace_pitches_in_midi_file(best_run_individual[0], midi_input_1, midi_filename)
+        if mode == 'pitch':
+            replace_pitches_in_midi_file(best_run_individual[0], midi_input_1, midi_filename)
+        elif mode == 'duration':
+            replace_durations_in_midi_file(best_run_individual[0], midi_input_1, midi_filename)
         print(f"Created MIDI file: {midi_filename}")
     else:
-        replace_pitches_in_midi_file(best_run_individual[0], midi_input_1, strategy)
+        if mode == 'pitch':
+            replace_pitches_in_midi_file(best_run_individual[0], midi_input_1, strategy)
+        elif mode == 'duration':
+            replace_durations_in_midi_file(best_run_individual[0], midi_input_1, strategy)
         print("Created MIDI file using best individual's pitches")
         
     print(f"Best fit after {num_generations} generations across {num_runs} runs: {round(best_run_individual[1], 4)}")
@@ -229,7 +250,7 @@ def evolve_multi(
         "Slowest run": fmt(max(run_times)),
         "Standard deviation": fmt(np.std(run_times)),
         "Best fitness": round(best_run_individual[1], 4)
-    }, name=strategy_name)
+    }, name = strategy_name)
 
     # Save strategy timing statistics
     if timing_csv_filename:
@@ -269,7 +290,7 @@ def evolve_multi(
         else:
             plot_fitness_evolution(aggregated_fitness, plot_step_size)
 
-def multi_strategy_test(num_runs, num_generations, pop_size, ind_size, save_csv = True, base_seed = None):
+def multi_strategy_test(num_runs, num_generations, pop_size, ind_size, save_csv = True, base_seed = None, mode = 'pitch'):
     aggregated_fitnesses_per_strategy = []
     # Compose experiment info for filenames
     exp_info = f"{num_runs}runs_{pop_size}pop_{ind_size}ind_{num_generations}gen"
@@ -290,7 +311,8 @@ def multi_strategy_test(num_runs, num_generations, pop_size, ind_size, save_csv 
             base_seed = strategy_seed,
             midi_filename = midi_filename,
             timing_csv_filename = timing_csv_filename,
-            fitness_csv_filename = fitness_csv_filename
+            fitness_csv_filename = fitness_csv_filename,
+            mode = mode
         )
         aggregated_fitnesses_per_strategy.append(aggregated_fitness)
     
