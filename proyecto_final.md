@@ -489,7 +489,7 @@ A continuación se presentan las figuras con los resultados obtenidos:
 <div align="center">
 
 ![](./plots/plot_std_fitness_indsize75_popsize500_gens1000_multi_strategy_runs30_elitism_random.png)  
-<b>Figura 10.</b> Mismo experimento que el visualizado en la Figura 7, pero representando la variación en la desviación estándar del fitness a lo largo de las 1000 generaciones.
+<b>Figura 10.</b> Mismo experimento que el visualizado en la Figura 7, pero representando la variación en la <b>desviación estándar</b> del fitness a lo largo de las 1000 generaciones.
 </div>
 
 &nbsp;
