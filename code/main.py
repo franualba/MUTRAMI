@@ -247,7 +247,6 @@ def evolve_multi(
         for gen, gen_fitness in enumerate(aggregated_fitness):
             fitness_stats.append({
                 "Generation": gen+1,
-                "Best": round(np.max(gen_fitness), 4),
                 "Mean": round(np.mean(gen_fitness), 4),
                 "Std": round(np.std(gen_fitness), 4),
                 "Min": round(np.min(gen_fitness), 4),
@@ -274,13 +273,13 @@ def multi_strategy_test(num_runs, num_generations, pop_size, ind_size, save_csv 
     aggregated_fitnesses_per_strategy = []
     # Compose experiment info for filenames
     exp_info = f"{num_runs}runs_{pop_size}pop_{ind_size}ind_{num_generations}gen"
-    timing_csv_filename = f"timing_{exp_info}.csv"
+    timing_csv_filename = f"timing_stats_{exp_info}.csv"
     fitness_csv_filenames = []
     midi_filenames = []
 
     for i in range(7):
         strategy_name = f"strategy{i+1}"
-        fitness_csv_filename = f"fitness_{strategy_name}_{exp_info}.csv"
+        fitness_csv_filename = f"fitness_stats_{strategy_name}_{exp_info}.csv"
         midi_filename = f"best_evolution_output_{strategy_name}_{exp_info}.mid"
         fitness_csv_filenames.append(fitness_csv_filename)
         midi_filenames.append(midi_filename)
@@ -305,7 +304,7 @@ def multi_strategy_test(num_runs, num_generations, pop_size, ind_size, save_csv 
         df = pd.DataFrame()
         for k, strategy_fitnesses in enumerate(best_fitnesses_per_strategy):
             df[f"Strategy {k+1}"] = strategy_fitnesses
-        fitness_csv_filename = f"fitness_all_{exp_info}.csv"
+        fitness_csv_filename = f"fitness_best_all_{exp_info}.csv"
         df.to_csv(fitness_csv_filename, index=False)
         print(f"Best fitness per generation for all strategies saved to {fitness_csv_filename}")
 
@@ -387,10 +386,9 @@ def plot_strategy_fitness_stats_from_csv(fitness_csv_filename, strategy_name = N
     generations = df["Generation"]
 
     plt.figure(figsize=(12, 8))
-    plt.plot(generations, df["Best"], label="Best", color="red", linewidth=2)
     plt.plot(generations, df["Mean"], label="Mean", color="blue", linestyle="--", linewidth=2)
     plt.plot(generations, df["Std"], label="Std Dev", color="orange", linestyle=":", linewidth=2)
-    plt.plot(generations, df["Min"], label="Min", color="green", linestyle="-.", linewidth=2)
+    plt.plot(generations, df["Min"], label="Min", color="green", linewidth=2)
     plt.plot(generations, df["Max"], label="Max", color="purple", linestyle=":", linewidth=2)
 
     plt.xlabel("Generation", fontsize=12)
@@ -414,8 +412,7 @@ def plot_fitness_boxplot_from_csv(csv_filename, step_size=1):
     data = [df[col].dropna().values for col in df.columns]
     # Filter by step_size
     data = data[::step_size]
-    generations = list(range(1, len(data) + 1))
-
+    
     plt.figure(figsize=(12, 8))
     box = plt.boxplot(data, patch_artist=True, showfliers=False)
 
@@ -456,6 +453,36 @@ def plot_fitness_boxplot_from_csv(csv_filename, step_size=1):
     plt.tight_layout()
     plt.show()
 
+def plot_metric_for_all_strategies(csv_files, metric, strategy_labels = None):
+    """
+    Plots a single metric for all strategies from their respective CSV files.
+
+    Args:
+        csv_files (list of str): List of paths to CSV files, one per strategy.
+        metric (str): The metric column to plot (e.g., 'mean', 'max', 'min', 'std').
+        strategy_labels (list of str, optional): Labels for each strategy. Defaults to file names.
+    """
+    if strategy_labels is None:
+        strategy_labels = [f"Strategy {i+1}" for i in range(len(csv_files))]
+    
+    plt.figure(figsize=(10, 6))
+    
+    for csv_file, label in zip(csv_files, strategy_labels):
+        df = pd.read_csv(csv_file)
+        if metric not in df.columns:
+            print(f"Metric '{metric}' not found in {csv_file}. Skipping.")
+            continue
+        plt.plot(df[metric], label = label)
+    
+    plt.xlabel('Generation')
+    plt.ylabel(metric.capitalize())
+    plt.title(f'{metric.capitalize()} fitness over generations for all strategies')
+    plt.grid(True, alpha=0.3)
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
 ### Testing zone ###
 
 # test_pop = generate_random_population(100, 50)
@@ -475,9 +502,19 @@ def plot_fitness_boxplot_from_csv(csv_filename, step_size=1):
 # evolve_multi(30, 10, 1000, 500, 50)
 
 try:
-    # multi_strategy_test(30, 1000, 500, 75, base_seed = 42)    
+    # csv_files = [
+    #     'fitness_stats_strategy1_30runs_500pop_75ind_1000gen.csv',
+    #     'fitness_stats_strategy2_30runs_500pop_75ind_1000gen.csv',
+    #     'fitness_stats_strategy3_30runs_500pop_75ind_1000gen.csv',
+    #     'fitness_stats_strategy4_30runs_500pop_75ind_1000gen.csv',
+    #     'fitness_stats_strategy5_30runs_500pop_75ind_1000gen.csv',
+    #     'fitness_stats_strategy6_30runs_500pop_75ind_1000gen.csv',
+    #     'fitness_stats_strategy7_30runs_500pop_75ind_1000gen.csv'
+    # ]
+    # plot_metric_for_all_strategies(csv_files, metric = 'Std')
+    multi_strategy_test(30, 1000, 500, 75, base_seed = 42)    
     # plot_multi_strategy_test_from_csv("fitness_all_30runs_500pop_75ind_1000gen.csv")
-    plot_strategy_fitness_stats_from_csv("fitness_strategy5_30runs_500pop_75ind_1000gen.csv")
+    # plot_strategy_fitness_stats_from_csv("fitness_stats_strategy5_30runs_500pop_75ind_1000gen.csv")
     # evolve_multi(30, 10, 1000, 500, 50, 0, 
     #              timing_csv_filename = "timing_stats_indsize50_popsize500_gens1000_strategy1_runs30.csv",
     #              fitness_csv_filename = "fitness_stats_indsize50_popsize500_gens1000_strategy1_runs30.csv",

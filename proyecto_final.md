@@ -405,35 +405,47 @@ A continuación se presentan las figuras con los resultados obtenidos:
 <b>Figura 1.</b> Ejecución de la estrategia número 1 (siempre recombinación simple) con 30 ejecuciones de 100 generaciones cada una, donde cada generación está compuesta a su vez por 500 individuos con una longitud de 50 tonos relativos cada uno.
 </div>
 
+&nbsp;
+
 <div align="center">
 
 ![](./plots/plot_indsize50_popsize500_gens1000_strategy1_runs30.png)  
-<b>Figura 2.</b> Resultado de ejecutar 30 procesos de 1000 generaciones cada uno, donde cada generación consta de 500 individuos de 50 tonos relativos cada uno
+<b>Figura 2.</b> Resultado de ejecutar 30 procesos de 1000 generaciones cada uno, donde cada generación consta de 500 individuos de 50 tonos relativos cada uno.
 </div>
+
+&nbsp;
 
 <div align="center">
 
 ![](./plots/plot_indsize50_popsize500_gens1000_multi_strategy_runs30.png)  
-<b>Figura 3.</b> Diagrama de líneas de tendencia comparando el rendimiento de las distintas estrategias de recombinación, para 30 procesos de 1000 generaciones cada uno, donde cada generación consta de 500 individuos de 50 tonos relativos cada uno
+<b>Figura 3.</b> Diagrama de líneas de tendencia comparando el rendimiento de las distintas estrategias de recombinación, para 30 procesos de 1000 generaciones cada uno, donde cada generación consta de 500 individuos de 50 tonos relativos cada uno.
 </div>
+
+&nbsp;
 
 <div align="center">
 
 ![](./plots/plot_indsize50_popsize500_gens1000_multi_strategy_runs30_zoomed_0.png)  
-<b>Figura 4.</b> Acercamiento a la parte final del proceso evolutivo representado en la Figura 4 (incluye desde la generación número 700 a la número 1000)
+<b>Figura 4.</b> Acercamiento a la parte final del proceso evolutivo representado en la Figura 4 (incluye desde la generación número 700 a la número 1000).
 </div>
+
+&nbsp;
 
 <div align="center">
 
 ![](./plots/plot_indsize50_popsize500_gens1000_multi_strategy_runs30_zoomed_1.png)  
-<b>Figura 5:</b> Acercamiento a la parte inicial del proceso evolutivo representado en la Figura 4 (incluye desde la generación número 50 a la número 400)
+<b>Figura 5:</b> Acercamiento a la parte inicial del proceso evolutivo representado en la Figura 4 (incluye desde la generación número 50 a la número 400).
 </div>
+
+&nbsp;
 
 <div align="center">
 
 ![](./plots/plot_indsize50_popsize500_gens100_multi_strategy_runs30_elitism_random.png)  
-<b>Figura 6.</b> Muestra el rendimiento de cada estrategia como en la Figura 4, pero esta vez empleando elitismo (me quedo con las 2 mejores soluciones de cada generación) e incluyendo también a modo de comparación el rendimiento de una solución aleatoria (la cual no emplea ni recombinación ni mutación, pero si elitismo). Esta prueba consistió en 30 procesos de 100 generaciones cada uno (no 1000), donde cada generación consta de 500 individuos de 50 tonos relativos cada uno
+<b>Figura 6.</b> Muestra el rendimiento de cada estrategia como en la Figura 4, pero esta vez empleando elitismo (me quedo con las 2 mejores soluciones de cada generación) e incluyendo también a modo de comparación el rendimiento de una solución aleatoria (la cual no emplea ni recombinación ni mutación, pero si elitismo). Esta prueba consistió en 30 procesos de 100 generaciones cada uno (no 1000), donde cada generación consta de 500 individuos de 50 tonos relativos cada uno.
 </div>
+
+&nbsp;
 
 <div align="center">
 
@@ -441,21 +453,53 @@ A continuación se presentan las figuras con los resultados obtenidos:
 <b>Figura 7.</b> Se agregan al experimento tres nuevas estrategias de recombinación (4, 5 y 6) y se incrementa la longitud de cada individuo a 75 tonos relativos (es decir, cada individuo crece un 50% en tamaño). Se ejecutan 30 procesos evolutivos de 1000 generaciones cada uno, con 500 individuos por población y 75 tonos relativos por individuo.
 </div>
 
-La siguiente es una tabla que permite visualizar los tiempos de ejecución de cada estrategia junto con el mejor valor de fitness obtenido:
+&nbsp;
 
 <div align="center">
 
-| Estrategia | Descripción | Mejor Fitness | Tiempo Total | Tiempo Promedio | Más Rápida | Más Lenta | Desv. Est. |
-|:------------:|:----------------------------:|:--------------:|:-----------------:|:------------:|:-----------:|:------------:|:------------:|
-| 1          | Recombinación simple       | 0.2746  | 234.75s      | 7.82s            | 7.37s      | 8.39s     | 0.21s      |
-| 2          | Recombinación doble        | 0.2908  | 256.74s      | 8.56s            | 7.19s      | 13.97s    | 1.51s      |
-| 3          | Recombinación mixta        | 0.2810  | 232.86s      | 7.76s            | 7.28s      | 8.29s     | 0.22s      |
-| 4          | Solución aleatoria         | 0.1972  | 204.90s      | 6.83s            | 6.67s      | 7.25s     | 0.12s      |
-
-<b>Tabla 1</b>
-
+![](./plots/plot_mean_fitness_indsize75_popsize500_gens1000_multi_strategy_runs30_elitism_random.png)  
+<b>Figura 8.</b> Mismo experimento que el visualizado en la Figura 7, pero representando el valor de fitness <b>promedio</b> lo largo de las 1000 generaciones.
 </div>
 
+&nbsp;
+
+<div align="center">
+
+![](./plots/plot_min_fitness_indsize75_popsize500_gens1000_multi_strategy_runs30_elitism_random.png)  
+<b>Figura 9a.</b> Mismo experimento que el visualizado en la Figura 7, pero representando el valor <b>mínimo</b> de fitness a lo largo de las 1000 generaciones.
+</div>
+
+&nbsp;
+
+<div align="center">
+
+![](./plots/plot_min_fitness_zoom_indsize75_popsize500_gens1000_multi_strategy_runs30_elitism_random.png)  
+<b>Figura 9b.</b> Mismo experimento que el visualizado en la Figura 9a, pero realizando zoom en la última parte del proceso evolutivo para poder apreciar un poco mejor las diferencias entre cada estrategia.
+</div>
+
+&nbsp;
+
+<div align="center">
+
+![](./plots/plot_std_fitness_indsize75_popsize500_gens1000_multi_strategy_runs30_elitism_random.png)  
+<b>Figura 10.</b> Mismo experimento que el visualizado en la Figura 7, pero representando la variación en la desviación estándar del fitness a lo largo de las 1000 generaciones.
+</div>
+
+&nbsp;
+
+A continuación se presentan también los distintos tiempos obtenidos por cada estrategia ejecutada en el experimento representado en la Figura 7:
+
+|                  | Estrategia 1         | Estrategia 2         | Estrategia 3         | Estrategia 4         | Estrategia 5         | Estrategia 6         | Estrategia 7         |
+|------------------|--------------------|--------------------|--------------------|--------------------|--------------------|--------------------|--------------------|
+| **Tiempo de ejecución total** | 2413.3s (40.2min) | 2447.8s (40.8min) | 2377.3s (39.6min) | 2414.2s (40.2min) | 2409.0s (40.2min) | 2402.8s (40.0min) | 2681.2s (44.7min) |
+| **Tiempo promedio por ejecución** | 80.4s (1.3min)    | 81.6s (1.4min)    | 79.2s (1.3min)    | 80.5s (1.3min)    | 80.3s (1.3min)    | 80.1s (1.3min)    | 89.4s (1.5min)    |
+| **Ejecución más rápida**         | 76.9s (1.3min)    | 80.6s (1.3min)    | 77.5s (1.3min)    | 79.6s (1.3min)    | 78.5s (1.3min)    | 78.6s (1.3min)    | 77.4s (1.3min)    |
+| **Ejecución más lenta**         | 100.3s (1.7min)   | 83.4s (1.4min)    | 81.8s (1.4min)    | 81.4s (1.4min)    | 84.4s (1.4min)    | 91.1s (1.5min)    | 176.5s (2.9min)   |
+| **Desviación estándar**  | 3.9s (0.1min)     | 0.7s (0.0min)     | 1.0s (0.0min)     | 0.4s (0.0min)     | 1.1s (0.0min)     | 2.5s (0.0min)     | 25.8s (0.4min)    |
+| **Mejor valor de fitness**        | 0.3201            | 0.3348            | 0.3266            | 0.3372            | 0.347             | 0.3372            | 0.2029            |
+<div align="center">
+<b>Tabla 1.</b> Resumen de tiempos y fitness para cada estrategia (30 ejecuciones, 500 individuos, 75 tonos, 1000 generaciones)
+</div>
 
 ## Análisis de resultados
 
