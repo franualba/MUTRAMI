@@ -37,6 +37,7 @@ def midi_to_relative_pitch_sequence(midi_file_path):
     midi_data = pretty_midi.PrettyMIDI(midi_file_path)
     pitch_sequence = [note.pitch for note in midi_data.instruments[0].notes]
     relative_pitch_sequence = [pitch_sequence[i+1] - pitch_sequence[i] for i in range(len(pitch_sequence)-1)]
+    #print(relative_pitch_sequence)
     return relative_pitch_sequence
 
 # Extract notes from MIDI file
@@ -99,6 +100,9 @@ def replace_pitches_in_midi_file(pitch_seq, midi_file_path, midi_filename):
 def midi_to_duration_sequence(midi_file_path):
     midi_data = pretty_midi.PrettyMIDI(midi_file_path)
     durations = [note.end - note.start for note in midi_data.instruments[0].notes]
+    # print(midi_data.instruments[0].notes[0].start)
+    # print(midi_data.instruments[0].notes[0].end)
+    # print(midi_data.instruments[0].notes[1].end - midi_data.instruments[0].notes[1].start)
     return durations
 
 def replace_durations_in_midi_file(duration_seq, midi_file_path, midi_filename):
@@ -111,7 +115,7 @@ def replace_durations_in_midi_file(duration_seq, midi_file_path, midi_filename):
             pitch = base_notes[i].pitch,
             velocity = base_notes[i].velocity,
             start = base_notes[i].start,
-            end = base_notes[i].start + max(0.05, duration_seq[i])  # avoid zero/negative durations
+            end = base_notes[i].start + max(0.01, duration_seq[i])  # avoid zero/negative durations
         )
         instrument.notes.append(note)
     midi_output.instruments.append(instrument)
@@ -126,5 +130,6 @@ def replace_durations_in_midi_file(duration_seq, midi_file_path, midi_filename):
 # notes_to_midi(notes, midi_output)
 
 # midi_to_relative_pitch_sequence(midi_input_1)
+# midi_to_duration_sequence(midi_input_1)
 
 # print_midi_info(midi_input_2, True)

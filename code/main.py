@@ -59,12 +59,16 @@ def generate_random_population(pop_size, ind_length, mode = 'pitch'):
         if mode == 'pitch':
             individual = [random.randint(-20, 20) for _ in range(ind_length)]
         elif mode == 'duration':
-            individual = [random.uniform(0.05, 1.0) for _ in range(ind_length)]  # durations in seconds
+            individual = [random.uniform(0.01, 2.2) for _ in range(ind_length)]  # durations in seconds
         population.append(individual)
     return population
 
 def compress_seq(seq):
-    bytes_seq = np.array(seq, dtype = np.int16).tobytes()
+    arr = np.array(seq)
+    if arr.dtype.kind == 'f':  # float
+        bytes_seq = arr.astype(np.float64).tobytes()
+    else:
+        bytes_seq = arr.astype(np.int16).tobytes()
     return len(zlib.compress(bytes_seq))
 
 def calculate_ncd(seq1, seq2):
@@ -85,7 +89,7 @@ def evolve_single(num_generations, pop_size, ind_size, strategy = 0, seed = None
         np.random.seed(seed)
         
     # Initialize random population
-    population0 = generate_random_population(pop_size, ind_size, mode=mode)
+    population0 = generate_random_population(pop_size, ind_size, mode = mode)
 
     # Create guide sequences list
     if mode == 'pitch':
@@ -94,6 +98,12 @@ def evolve_single(num_generations, pop_size, ind_size, strategy = 0, seed = None
     elif mode == 'duration':
         guide_seq1 = midi_to_duration_sequence(midi_input_1)
         guide_seq2 = midi_to_duration_sequence(midi_input_2)
+        # print(min(guide_seq1))
+        # print(max(guide_seq1))
+        # print(min(guide_seq2))
+        # print(max(guide_seq2))
+        # print(calculate_ncd(guide_seq1, guide_seq1))
+        # print(calculate_ncd(guide_seq1, guide_seq2))
     guide_list = [guide_seq1, guide_seq2]
 
     # Calculate fitness value for each individual in the random population
@@ -156,7 +166,8 @@ def evolve_single(num_generations, pop_size, ind_size, strategy = 0, seed = None
             
             # Mutate all individuals
             for k in range(2, len(sorted_pop)):
-                mutate(sorted_pop[k][0])
+                for _ in range(10):
+                    mutate(sorted_pop[k][0])
             
             # Re-calculate fitness value for all individuals
             sorted_pop = [(ind[0], calculate_fitness(ind[0], guide_list)) for ind in sorted_pop]
@@ -165,10 +176,19 @@ def evolve_single(num_generations, pop_size, ind_size, strategy = 0, seed = None
         population1 = sorted_pop
 
     # Final generation fitness
-    final_sorted_pop = sorted(population1, key=lambda x: -x[1])
+    final_sorted_pop = sorted(population1, key = lambda x: -x[1])
     final_fitness = [ind[1] for ind in final_sorted_pop]
     fitness_history.append(final_fitness)
     
+    # print(final_sorted_pop[:2])
+    # print(final_sorted_pop[0][0][:3])
+    # print(guide_seq1[:3])
+    # print(guide_seq2[:3])
+    # print(calculate_ncd(guide_seq1, guide_seq1))
+    # print(calculate_ncd(guide_seq1, guide_seq2))
+    # print(calculate_ncd(final_sorted_pop[0][0], guide_seq1))
+    # print(calculate_ncd(final_sorted_pop[0][0], guide_seq2))
+
     return fitness_history, final_sorted_pop[0]
 
 def evolve_multi(
@@ -523,25 +543,29 @@ def plot_metric_for_all_strategies(csv_files, metric, strategy_labels = None):
 
 # evolve_multi(30, 10, 1000, 500, 50)
 
-try:
-    # csv_files = [
-    #     'fitness_stats_strategy1_30runs_500pop_75ind_1000gen.csv',
-    #     'fitness_stats_strategy2_30runs_500pop_75ind_1000gen.csv',
-    #     'fitness_stats_strategy3_30runs_500pop_75ind_1000gen.csv',
-    #     'fitness_stats_strategy4_30runs_500pop_75ind_1000gen.csv',
-    #     'fitness_stats_strategy5_30runs_500pop_75ind_1000gen.csv',
-    #     'fitness_stats_strategy6_30runs_500pop_75ind_1000gen.csv',
-    #     'fitness_stats_strategy7_30runs_500pop_75ind_1000gen.csv'
-    # ]
-    # plot_metric_for_all_strategies(csv_files, metric = 'Std')
-    multi_strategy_test(30, 1000, 500, 75, base_seed = 42)    
-    # plot_multi_strategy_test_from_csv("fitness_all_30runs_500pop_75ind_1000gen.csv")
-    # plot_strategy_fitness_stats_from_csv("fitness_stats_strategy5_30runs_500pop_75ind_1000gen.csv")
-    # evolve_multi(30, 10, 1000, 500, 50, 0, 
-    #              timing_csv_filename = "timing_stats_indsize50_popsize500_gens1000_strategy1_runs30.csv",
-    #              fitness_csv_filename = "fitness_stats_indsize50_popsize500_gens1000_strategy1_runs30.csv",
-    #              boxplot_csv_filename = "aggregated_fitness_indsize50_popsize500_gens1000_strategy1_runs30.csv")
-except Exception as e:
-    print(e)
+# a, b = evolve_single(1000, 500, 75, 4, 42, mode = "duration")
+
+# print(min(a[0]))
+# print(max(a[0]))
+# print(b[1])
 
 
+# csv_files = [
+#     'fitness_stats_strategy1_30runs_500pop_75ind_1000gen.csv',
+#     'fitness_stats_strategy2_30runs_500pop_75ind_1000gen.csv',
+#     'fitness_stats_strategy3_30runs_500pop_75ind_1000gen.csv',
+#     'fitness_stats_strategy4_30runs_500pop_75ind_1000gen.csv',
+#     'fitness_stats_strategy5_30runs_500pop_75ind_1000gen.csv',
+#     'fitness_stats_strategy6_30runs_500pop_75ind_1000gen.csv',
+#     'fitness_stats_strategy7_30runs_500pop_75ind_1000gen.csv'
+# ]
+# plot_metric_for_all_strategies(csv_files, metric = 'Std')
+
+# multi_strategy_test(1, 1000, 500, 75, base_seed = 42, mode = 'duration')    
+
+# plot_multi_strategy_test_from_csv("fitness_all_30runs_500pop_75ind_1000gen.csv")
+# plot_strategy_fitness_stats_from_csv("fitness_stats_strategy5_30runs_500pop_75ind_1000gen.csv")
+evolve_multi(1, 0, 1000, 500, 50, 0, mode = 'duration',
+             timing_csv_filename = "duration_timing_stats_indsize50_popsize500_gens1000_strategy1_runs1.csv",
+             fitness_csv_filename = "duration_fitness_stats_indsize50_popsize500_gens1000_strategy1_runs1.csv")
+            #  boxplot_csv_filename = "aggregated_fitness_indsize50_popsize500_gens1000_strategy1_runs30.csv")

@@ -1,0 +1,7 @@
+,Strategy 1,Strategy 2,Strategy 3,Strategy 4,Strategy 5,Strategy 6,Strategy 7
+Total execution time,2235.5s (37.3min),2163.2s (36.1min),2087.5s (34.8min),2106.5s (35.1min),2135.2s (35.6min),2377.0s (39.6min),4487.2s (74.8min)
+Average time per run,74.5s (1.2min),72.1s (1.2min),69.6s (1.2min),70.2s (1.2min),71.2s (1.2min),79.2s (1.3min),149.6s (2.5min)
+Fastest run,69.9s (1.2min),70.2s (1.2min),67.6s (1.1min),68.5s (1.1min),67.4s (1.1min),71.3s (1.2min),77.0s (1.3min)
+Slowest run,86.6s (1.4min),73.9s (1.2min),74.1s (1.2min),73.2s (1.2min),81.6s (1.4min),94.0s (1.6min),191.6s (3.2min)
+Standard deviation,5.1s (0.1min),0.9s (0.0min),1.5s (0.0min),1.2s (0.0min),3.2s (0.1min),6.3s (0.1min),49.3s (0.8min)
+Best fitness,0.5058,0.5058,0.5058,0.5058,0.5058,0.5058,0.5058
