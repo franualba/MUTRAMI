@@ -374,15 +374,15 @@ Estas herramientas permitieron implementar, ejecutar y analizar el algoritmo de 
 Para poner a prueba el rendimiento del algoritmo planteado se establecieron como punto de partida los siguientes lineamientos:
 
 1. Sólo se trabaja con la melodía de los archivos musicales, dejando de lado aspectos como la armonía o el ritmo. Esto implica que, para un archivo MIDI en particular obtenido de internet, se debe inspeccionar el número de pistas incluídas en el mismo, quedándonos sólo con la parte melódica en caso de encontrar más de una pista.
-2. Se omite alterar la duración de cada nota, trabajando únicamente con los tonos. Esto se debe a que, de acuerdo a lo investigado (ver [2]), si se modifica la duración de cada nota en una melodía sin afectar sus tonos, sigue siendo posible reconocer la melodía original (en otras palabras, la duración de cada nota no altera de forma sustancial la esencia de una melodía). Sin embargo esto no ocurre con el caso opuesto, es decir, al alterar los tonos de cada nota de una melodía manteniendo sus duraciones, se ha comprobado que la melodía deja de ser reconocible.
+2. De acuerdo a lo investigado (ver [2]), si se modifica la duración de cada nota en una melodía sin afectar sus tonos, sigue siendo posible reconocer la melodía original (en otras palabras, la duración de cada nota no altera de forma sustancial la esencia de una melodía). Sin embargo esto no ocurre con el caso opuesto, es decir, al alterar los tonos de cada nota de una melodía manteniendo sus duraciones, se ha comprobado que la melodía deja de ser reconocible. Es por este motivo que se experimenta principalmente con la evolución de tonos relativos, dejando el proceso análogo para la duración de las notas como un indicador del funcionamiento de la NCD como parte de la función de aptitud.
 3. Cada individuo de la población consiste en una secuencia de diferencias tonales, es decir, se trabaja con tonos relativos y no absolutos.
 4. Para guiar el proceso evolutivo, se toman como guía dos secuencias melódicas, de la misma longitud que los individios de la población. La función de fitness calcula entonces el valor de aptitud de cada individuo partiendo del valor de la NCD entre la secuencia tonal del individuo y la secuencia de la melodía guía, para cada secuencia guía, y ponderando estas distancias en partes iguales según el número de secuencias guía (en este caso, se utilizan 2 secuencias guía, por lo que cada valor de la NCD se multiplica por 0.5 para obtener el valor de aptitud final de un individuo).
 5. La mutación se realiza eligiendo en forma aleatoria un valor puntual de la secuencia de tonos relativos del individuo, y adicionándole un valor también aleatorio en el rango [-2, 2].
-6. La longitud de cada individuo es de 50 tonos relativos, y cada tono se inicializa en forma aleatoria con un valor en el rango [-20, 20].
+6. Los tonos de cada individuo en la población inicial se inicializan en forma aleatoria con un valor en el rango [-20, 20].
 7. Se utiliza un tamaño de población de 500 individuos.
 8. Se ejecuta 30 veces cada proceso evolutivo con el objetivo de obtener resultados más representativos del rendimiento de una estrategia. Por ejemplo, si una estrategia se ejecuta a lo largo de 100 generaciones, se repite 30 veces cada proceso de 100 generaciones y se agregan los resultados de cada generación al final para su posterior evaluación.
 
-A partir de estas disposiciones iniciales, se fue experimentando con distintos valores para algunos parámetros, puntualmente el número de individuos, el tamaño de la población y el número de generaciones.
+A partir de estas disposiciones iniciales, se fue experimentando con distintos valores para algunos parámetros, puntualmente el número de individuos y el número de generaciones.
 
 A modo de recordatorio, la estrategia de evolución principal adoptada consiste en:
 1. Inicializar una población en forma aleatoria.
@@ -404,7 +404,9 @@ Con el propósito de investigar la mejor relación entre exploración y explotac
 
 &nbsp;
 
-A continuación se presentan las figuras con los resultados obtenidos:
+Las siguientes figuras muestran los resultados obtenidos para distintos experimentos:
+
+### Evolución de tonos relativos
 
 <div align="center">
 
@@ -417,7 +419,7 @@ A continuación se presentan las figuras con los resultados obtenidos:
 <div align="center">
 
 ![](./plots/plot_indsize50_popsize500_gens1000_strategy1_runs30.png)  
-<b>Figura 2.</b> Resultado de ejecutar 30 procesos de 1000 generaciones cada uno, donde cada generación consta de 500 individuos de 50 tonos relativos cada uno.
+<b>Figura 2.</b> Ejecución de la estrategia número 1 (siempre recombinación simple) con 30 ejecuciones de 1000 generaciones cada una en lugar de 100, donde cada generación está compuesta a su vez por 500 individuos con una longitud de 50 tonos relativos cada uno.
 </div>
 
 &nbsp;
@@ -505,7 +507,43 @@ A continuación se presentan también los distintos tiempos obtenidos por cada e
 | **Desviación estándar**  | 3.9s (0.1min)     | 0.7s (0.0min)     | 1.0s (0.0min)     | 0.4s (0.0min)     | 1.1s (0.0min)     | 2.5s (0.0min)     | 25.8s (0.4min)    |
 | **Mejor valor de fitness**        | 0.3201            | 0.3348            | 0.3266            | 0.3372            | 0.347             | 0.3372            | 0.2029            |
 <div align="center">
-<b>Tabla 1.</b> Resumen de tiempos y fitness para cada estrategia (30 ejecuciones, 500 individuos, 75 tonos, 1000 generaciones)
+<b>Tabla 1.</b> Resumen de tiempos y fitness para cada estrategia aplicada al tono de las notas (30 ejecuciones, 500 individuos, 75 tonos, 1000 generaciones)
+</div>
+
+### Comparación de la distribución en los tonos de las notas
+
+<div align="center">
+
+![](./plots/pitch_distribution_comparison.png)  
+<b>Figura 11.</b> Distribución del tono de las notas correspondientes a los archivos musicales de entrada (canciones "Overworld" y "Let It Be") y el resultado del proceso evolutivo (para los tonos) generado por la estrategia número 5.
+</div>
+
+### Evolución de la duración de las notas
+
+<div align="center">
+
+![](./plots/duration_plot_indsize75_popsize500_gens1000_multi_strategy_runs30_elitism_random.png)  
+<b>Figura 12.</b> Resultado de aplicar la mismas estrategias empleadas anteriormente para evolucionar los tonos relativos de una melodía, pero esta vez aplicadas a la duración de las mismas.
+</div>
+
+| Métrica                   | Estrategia 1        | Estrategia 2        | Estrategia 3        | Estrategia 4        | Estrategia 5        | Estrategia 6        | Estrategia 7        |
+|---------------------------|---------------------|---------------------|---------------------|---------------------|---------------------|---------------------|---------------------|
+| Tiempo total de ejecución | 377.1s (6.3min)     | 404.0s (6.7min)     | 227.7s (3.8min)     | 225.3s (3.8min)     | 270.0s (4.5min)     | 219.7s (3.7min)     | 155.2s (2.6min)     |
+| Tiempo promedio por corrida| 377.1s (6.3min)    | 404.0s (6.7min)     | 227.7s (3.8min)     | 225.3s (3.8min)     | 270.0s (4.5min)     | 219.7s (3.7min)     | 155.2s (2.6min)     |
+| Corrida más rápida        | 377.1s (6.3min)     | 404.0s (6.7min)     | 227.7s (3.8min)     | 225.3s (3.8min)     | 270.0s (4.5min)     | 219.7s (3.7min)     | 155.2s (2.6min)     |
+| Corrida más lenta         | 377.1s (6.3min)     | 404.0s (6.7min)     | 227.7s (3.8min)     | 225.3s (3.8min)     | 270.0s (4.5min)     | 219.7s (3.7min)     | 155.2s (2.6min)     |
+| Desviación estándar       | 0.0s (0.0min)       | 0.0s (0.0min)       | 0.0s (0.0min)       | 0.0s (0.0min)       | 0.0s (0.0min)       | 0.0s (0.0min)       | 0.0s (0.0min)       |
+| Mejor aptitud             | 0.0141              | 0.0151              | 0.0137              | 0.0121              | 0.0151              | 0.0128              | -0.0295             |
+<div align="center">
+<b>Tabla 2.</b> Resumen de tiempos y fitness para cada estrategia aplicada a la duración de las notas (30 ejecuciones, 500 individuos, 75 tonos, 1000 generaciones)
+</div>
+
+### Comparación de la distribución en la duración de las notas
+
+<div align="center">
+
+![](./plots/duration_distribution_comparison.png)  
+<b>Figura 13.</b> Distribución de la duración de las notas correspondientes a los archivos musicales de entrada (canciones "Overworld" y "Let It Be") y el resultado del proceso evolutivo (para las duraciones) generado por la estrategia número 5.
 </div>
 
 ## Análisis de resultados

@@ -40,6 +40,24 @@ def midi_to_relative_pitch_sequence(midi_file_path):
     #print(relative_pitch_sequence)
     return relative_pitch_sequence
 
+def midi_to_duration_sequence(midi_file_path):
+    midi_data = pretty_midi.PrettyMIDI(midi_file_path)
+    durations = [note.end - note.start for note in midi_data.instruments[0].notes]
+    # print(midi_data.instruments[0].notes[0].start)
+    # print(midi_data.instruments[0].notes[0].end)
+    # print(midi_data.instruments[0].notes[1].end - midi_data.instruments[0].notes[1].start)
+    return durations
+
+def midi_to_rhythm_sequence(midi_file_path):
+    midi_data = pretty_midi.PrettyMIDI(midi_file_path)
+    notes = midi_data.instruments[0].notes
+    rhythm_seq = []
+    for i in range(len(notes) - 1):
+        rhythm_seq.append(notes[i+1].start - notes[i].end)
+    # Pad to match note count
+    # rhythm_seq.append(0.0)
+    return rhythm_seq
+
 # Extract notes from MIDI file
 def midi_to_notes(midi_file_path):
     midi_data = pretty_midi.PrettyMIDI(midi_file_path)
@@ -97,27 +115,72 @@ def replace_pitches_in_midi_file(pitch_seq, midi_file_path, midi_filename):
     midi_output.instruments.append(instrument)
     midi_output.write(f"../midi_files/{midi_filename}.mid")
 
-def midi_to_duration_sequence(midi_file_path):
-    midi_data = pretty_midi.PrettyMIDI(midi_file_path)
-    durations = [note.end - note.start for note in midi_data.instruments[0].notes]
-    # print(midi_data.instruments[0].notes[0].start)
-    # print(midi_data.instruments[0].notes[0].end)
-    # print(midi_data.instruments[0].notes[1].end - midi_data.instruments[0].notes[1].start)
-    return durations
-
 def replace_durations_in_midi_file(duration_seq, midi_file_path, midi_filename):
     midi_base = pretty_midi.PrettyMIDI(midi_file_path)
     base_notes = midi_base.instruments[0].notes
     midi_output = pretty_midi.PrettyMIDI()
     instrument = pretty_midi.Instrument(program = midi_base.instruments[0].program)
+    start_time = base_notes[0].start
     for i in range(len(duration_seq)):
+        duration = max(0.8, duration_seq[i])
+        duration = min()
+        print(duration)
+        end_time = start_time + duration
         note = pretty_midi.Note(
             pitch = base_notes[i].pitch,
             velocity = base_notes[i].velocity,
-            start = base_notes[i].start,
-            end = base_notes[i].start + max(0.01, duration_seq[i])  # avoid zero/negative durations
+            start = start_time,
+            end = end_time
         )
         instrument.notes.append(note)
+        start_time = end_time
+    midi_output.instruments.append(instrument)
+    midi_output.write(f"../midi_files/{midi_filename}.mid")
+
+def replace_rhythms_in_midi_file(rhythm_seq, midi_file_path, midi_filename):
+    midi_base = pretty_midi.PrettyMIDI(midi_file_path)
+    base_notes = midi_base.instruments[0].notes
+    midi_output = pretty_midi.PrettyMIDI()
+    instrument = pretty_midi.Instrument(program = midi_base.instruments[0].program)
+    start_time = base_notes[0].start
+    for i in range(len(base_notes)):
+        end_time = start_time + (base_notes[i].end - base_notes[i].start)
+        note = pretty_midi.Note(
+            pitch = base_notes[i].pitch,
+            velocity = base_notes[i].velocity,
+            start = start_time,
+            end = end_time
+        )
+        instrument.notes.append(note)
+        if i < len(rhythm_seq):
+            start_time = end_time + rhythm_seq[i]
+    midi_output.instruments.append(instrument)
+    midi_output.write(f"../midi_files/{midi_filename}.mid")
+
+def combine_evolved_sequences_to_midi(pitch_seq, duration_seq, rhythm_seq, midi_file_path, midi_filename):
+    midi_base = pretty_midi.PrettyMIDI(midi_file_path)
+    base_notes = midi_base.instruments[0].notes
+    # print(len(base_notes), len(duration_seq), len(rhythm_seq))
+    midi_output = pretty_midi.PrettyMIDI()
+    instrument = pretty_midi.Instrument(program = midi_base.instruments[0].program)
+    start_time = base_notes[0].start
+    for i in range(len(pitch_seq)):
+        # Use evolved pitch and duration
+        pitch = pitch_seq[i] + 50 if pitch_seq is not None else base_notes[i].pitch
+        duration = max(0.03, duration_seq[i]) if duration_seq is not None else (base_notes[i].end - base_notes[i].start)
+        end_time = start_time + duration
+        note = pretty_midi.Note(
+            pitch = pitch,
+            velocity = base_notes[i].velocity,
+            start = start_time,
+            end = end_time
+        )
+        instrument.notes.append(note)
+        # Use evolved rhythm for next note's start time
+        if rhythm_seq is not None and i < len(rhythm_seq):
+            start_time = end_time + rhythm_seq[i]
+        else:
+            start_time = end_time
     midi_output.instruments.append(instrument)
     midi_output.write(f"../midi_files/{midi_filename}.mid")
 
@@ -133,3 +196,4 @@ def replace_durations_in_midi_file(duration_seq, midi_file_path, midi_filename):
 # midi_to_duration_sequence(midi_input_1)
 
 # print_midi_info(midi_input_2, True)
+
