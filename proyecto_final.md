@@ -531,7 +531,7 @@ A continuación se presentan también los distintos tiempos obtenidos por cada e
 <div align="center">
 
 ![](./plots/duration_plot_indsize75_popsize500_gens1000_multi_strategy_runs30_elitism_random.png)  
-<b>Figura 12.</b> Resultado de aplicar la mismas estrategias empleadas anteriormente para evolucionar los tonos relativos de una melodía, pero esta vez aplicadas a la duración de las mismas.
+<b>Figura 12.</b> Resultado de aplicar las mismas estrategias empleadas anteriormente para evolucionar los tonos de las notas en una melodía, pero esta vez aplicadas a la duración de las mismas.
 </div>
 
 &nbsp;
@@ -545,7 +545,7 @@ A continuación se presentan también los distintos tiempos obtenidos por cada e
 | Desviación estándar       | 0.0s (0.0min)       | 0.0s (0.0min)       | 0.0s (0.0min)       | 0.0s (0.0min)       | 0.0s (0.0min)       | 0.0s (0.0min)       | 0.0s (0.0min)       |
 | Mejor aptitud             | 0.0141              | 0.0151              | 0.0137              | 0.0121              | 0.0151              | 0.0128              | -0.0295             |
 <div align="center">
-<b>Tabla 2.</b> Resumen de tiempos y fitness para cada estrategia aplicada a la duración de las notas (30 ejecuciones, 500 individuos, 75 tonos, 1000 generaciones)
+<b>Tabla 2.</b> Resumen de tiempos y fitness para cada estrategia aplicada a la duración de las notas (30 ejecuciones, 500 individuos, 75 duraciones, 1000 generaciones)
 </div>
 
 &nbsp;
