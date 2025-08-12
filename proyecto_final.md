@@ -36,6 +36,10 @@
    - [Métricas de Evaluación](#métricas-de-evaluación)
    - [Herramientas Utilizadas](#herramientas-utilizadas)
    - [Detalle de los Experimentos Realizados](#detalle-de-los-experimentos-realizados)
+     - [Evolución de tonos relativos](#evolución-de-tonos-relativos)
+     - [Comparación de la distribución en los tonos de las notas](#comparación-de-la-distribución-en-los-tonos-de-las-notas)
+     - [Evolución de la duración de las notas](#evolución-de-la-duración-de-las-notas)
+     - [Comparación de la distribución en la duración de las notas](#comparación-de-la-distribución-en-la-duración-de-las-notas)
 
 4. [Análisis de resultados](#análisis-de-resultados)
 
@@ -510,6 +514,8 @@ A continuación se presentan también los distintos tiempos obtenidos por cada e
 <b>Tabla 1.</b> Resumen de tiempos y fitness para cada estrategia aplicada al tono de las notas (30 ejecuciones, 500 individuos, 75 tonos, 1000 generaciones)
 </div>
 
+&nbsp;
+
 ### Comparación de la distribución en los tonos de las notas
 
 <div align="center">
@@ -518,6 +524,8 @@ A continuación se presentan también los distintos tiempos obtenidos por cada e
 <b>Figura 11.</b> Distribución del tono de las notas correspondientes a los archivos musicales de entrada (canciones "Overworld" y "Let It Be") y el resultado del proceso evolutivo (para los tonos) generado por la estrategia número 5.
 </div>
 
+&nbsp;
+
 ### Evolución de la duración de las notas
 
 <div align="center">
@@ -525,6 +533,8 @@ A continuación se presentan también los distintos tiempos obtenidos por cada e
 ![](./plots/duration_plot_indsize75_popsize500_gens1000_multi_strategy_runs30_elitism_random.png)  
 <b>Figura 12.</b> Resultado de aplicar la mismas estrategias empleadas anteriormente para evolucionar los tonos relativos de una melodía, pero esta vez aplicadas a la duración de las mismas.
 </div>
+
+&nbsp;
 
 | Métrica                   | Estrategia 1        | Estrategia 2        | Estrategia 3        | Estrategia 4        | Estrategia 5        | Estrategia 6        | Estrategia 7        |
 |---------------------------|---------------------|---------------------|---------------------|---------------------|---------------------|---------------------|---------------------|
@@ -538,6 +548,8 @@ A continuación se presentan también los distintos tiempos obtenidos por cada e
 <b>Tabla 2.</b> Resumen de tiempos y fitness para cada estrategia aplicada a la duración de las notas (30 ejecuciones, 500 individuos, 75 tonos, 1000 generaciones)
 </div>
 
+&nbsp;
+
 ### Comparación de la distribución en la duración de las notas
 
 <div align="center">
@@ -545,6 +557,8 @@ A continuación se presentan también los distintos tiempos obtenidos por cada e
 ![](./plots/duration_distribution_comparison.png)  
 <b>Figura 13.</b> Distribución de la duración de las notas correspondientes a los archivos musicales de entrada (canciones "Overworld" y "Let It Be") y el resultado del proceso evolutivo (para las duraciones) generado por la estrategia número 5.
 </div>
+
+&nbsp;
 
 ## Análisis de resultados
 
