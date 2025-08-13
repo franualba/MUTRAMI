@@ -42,10 +42,15 @@
      - [Comparación de la distribución en la duración de las notas](#comparación-de-la-distribución-en-la-duración-de-las-notas)
 
 4. [Análisis de resultados](#análisis-de-resultados)
+   - [Aplicación del algoritmo a la evolución de los tonos](#aplicación-del-algoritmo-a-la-evolución-de-los-tonos)
+     - [Distribución tonal de las notas musicales](#distribución-tonal-de-las-notas-musicales)
+   - [Aplicación del algoritmo a la evolución de duraciones](#aplicación-del-algoritmo-a-la-evolución-de-duraciones)
+     - [Distribución temporal de las notas musicales](#distribución-temporal-de-las-notas-musicales)
 
 5. [Conclusión](#conclusión)
 
 6. [Bibliografía](#bibliografía)
+
 
 ## Introducción
 
@@ -439,7 +444,7 @@ Las siguientes figuras muestran los resultados obtenidos para distintos experime
 <div align="center">
 
 ![](./plots/plot_indsize50_popsize500_gens1000_multi_strategy_runs30_zoomed_0.png)  
-<b>Figura 4.</b> Acercamiento a la parte final del proceso evolutivo representado en la Figura 4 (incluye desde la generación número 700 a la número 1000).
+<b>Figura 4.</b> Acercamiento a la parte final del proceso evolutivo representado en la Figura 3 (incluye desde la generación número 700 a la número 1000).
 </div>
 
 &nbsp;
@@ -447,7 +452,7 @@ Las siguientes figuras muestran los resultados obtenidos para distintos experime
 <div align="center">
 
 ![](./plots/plot_indsize50_popsize500_gens1000_multi_strategy_runs30_zoomed_1.png)  
-<b>Figura 5:</b> Acercamiento a la parte inicial del proceso evolutivo representado en la Figura 4 (incluye desde la generación número 50 a la número 400).
+<b>Figura 5:</b> Acercamiento a la parte inicial del proceso evolutivo representado en la Figura 3 (incluye desde la generación número 50 a la número 400).
 </div>
 
 &nbsp;
@@ -455,7 +460,7 @@ Las siguientes figuras muestran los resultados obtenidos para distintos experime
 <div align="center">
 
 ![](./plots/plot_indsize50_popsize500_gens100_multi_strategy_runs30_elitism_random.png)  
-<b>Figura 6.</b> Muestra el rendimiento de cada estrategia como en la Figura 4, pero esta vez empleando elitismo (me quedo con las 2 mejores soluciones de cada generación) e incluyendo también a modo de comparación el rendimiento de una solución aleatoria (la cual no emplea ni recombinación ni mutación, pero si elitismo). Esta prueba consistió en 30 procesos de 100 generaciones cada uno (no 1000), donde cada generación consta de 500 individuos de 50 tonos relativos cada uno.
+<b>Figura 6.</b> Muestra el rendimiento de cada estrategia como en la Figura 3, pero esta vez empleando elitismo (me quedo con las 2 mejores soluciones de cada generación) e incluyendo también a modo de comparación el rendimiento de una solución aleatoria (la cual no emplea ni recombinación ni mutación, pero si elitismo). Esta prueba consistió en 30 procesos de 100 generaciones cada uno (no 1000), donde cada generación consta de 500 individuos de 50 tonos relativos cada uno.
 </div>
 
 &nbsp;
@@ -555,13 +560,42 @@ A continuación se presentan también los distintos tiempos obtenidos por cada e
 <div align="center">
 
 ![](./plots/duration_distribution_comparison.png)  
-<b>Figura 13.</b> Distribución de la duración de las notas correspondientes a los archivos musicales de entrada (canciones "Overworld" y "Let It Be") y el resultado del proceso evolutivo (para las duraciones) generado por la estrategia número 5.
+<b>Figura 13.</b> Distribución de la duración de las notas correspondientes a los archivos musicales de entrada (canciones "Overworld" y "Let It Be") y al resultado del proceso evolutivo (para las duraciones) generado por la estrategia número 5.
 </div>
 
 &nbsp;
 
 ## Análisis de resultados
 
+### Aplicación del algoritmo a la evolución de los tonos
+
+Con los primeros experimentos realizados se busca determinar un valor razonable para el número de generaciones ejecutadas por el algoritmo. Observando los valores de fitness plasmados en los diagramas de caja y extensión para los casos de 100 y 1000 generaciones (ejecutando una única estrategia de recombinación), respectivamente, podemos concluir que el mismo aumenta de forma significativa durante las primeras 250 a 300 generaciones, y a partir de ese punto continúa incrementando de forma mucho menos marcada que en las generaciones anteriores, lo cual junto con el tiempo de ejecución requerido para llevar adelante la prueba, lleva a concluir que ejecutar más de 1000 generaciones no provee de una ventaja significativa a fin de evaluar de forma más adecuada el nivel de rendimiento del algoritmo.
+
+Posteriormente, se analiza el rendimiento de múltiples estrategias de recombinación utilizando un diagrama de líneas de tendencia, representando la variación en los valores de aptitud con el correr de las generaciones. Como es posible observar, por un margen pequeño respecto de la estrategia 1 (recombinación de un sólo punto), la estrategia número 2 (recombinación de dos puntos) obtiene el mejor resultado, notando además que esta estrategia es la que más rápido converge a un valor de fitness alto en las primeras generaciones del proceso evolutivo (más notoriamente entre las generaciones 50 y 400 aproximadamente). Esto se puede apreciar con más claridad en los acercamientos a las líneas de tendencia representados, siendo con la incorporación del operador de elitismo a cada estrategias y de los resultados generados por el algoritmo aleatorio a modo de referencia cuando más evidente resulta la diferencia en el rendimiento de cada enfoque.
+
+Viendo los resultados obtenidos al utilizar recombinación doble, se decide agregar nuevos experimentos a los ya realizados con el objetivo de investigar mejor la relación entre exploración y explotación lograda por cada estrategia, con la idea de que incrementar el tamaño del espacio de búsqueda en la etapa de exploración al incio del proceso y posteriormente apuntalar la etapa de explotación pueda tener un impacto positivo en el valor final obtenido por la función de aptitud. A partir de los resultados obtenidos, puede observarse que todas las estrategias agregadas (4, 5 y 6) utilizando recombinación de tres y cuatro puntos obtienen finalmente mejores valores de aptitud que los de estrategias anteriores que sólo empleaban recombinación simple y doble, confirmando efectivamente la hipótesis de que mejorar la relación entre exploración y explotación impacta positivamente en los valores de aptitud de los individuos. 
+
+De entre las estrategias que utilizan recombinación triple y cuádruple, la que mejores resultados obtuvo fue la estrategia número 5 (recombinación de 4 puntos), que logró incluso obtener mejores soluciones que el resto ya desde la generación número 80, siendo significativamente más rápida en converger que las demás implementaciones. Y si analizamos también el rendimiento promedio de cada estrategia (siempre en relación a los valores de fitness obtenidos por cada una), vemos nuevamente que la estrategia número 5 se mantiene como la que mejores resultados obtiene, pero esta vez la diferencia respecto de la estrategia número 4, que hizo uso de tres puntos de recombinación en todo el proceso evolutivo, se vuelve apreciablemente menos significativa. Por último, añadiendo al análisis los valores de aptitud mínimos alcanzados y su variación a lo largo del proceso, es posible concluir que las dos estrategias con mejores resultados obtenidos son las 4 y 5, donde a su vez en líneas generales esta última destaca sobre la otra por un margen muy pequeño, excepto si tenemos en cuenta la variación en los valores de aptitud, donde la estrategia 4 obtiene una ligera ventaja.
+
+#### Distribución tonal de las notas musicales
+
+Basándonos en los resultados obtenidos hasta el momento podríamos considerar que efectivamente la NCD constituye un indicador útil al momento de "juzgar" la calidad de una pieza musical y guiar el proceso evolutivo del algoritmo genético, después de todo, los valores de aptitud obtenidos por las estrategias evaluadas son significativamente mejores que aquellos logrados por una solución aleatoria. Sin embargo, junto con los valores de aptitud resulta necesario examinar también la calidad musical de los archivos obtenidos, y una forma de hacerlo es observar cómo se distribuyen las notas en los archivos MIDI producidos como resultado. 
+
+Con esto en mente y teniendo en cuenta que los archivos MIDI que hicieron las veces de "guías" del proceso evolutivo fueron las canciones "Overworld" del juego de Mario Bros y "Let It Be" de Los Beatles, uno podría esperar que el resultado, que teóricamente debería mezclar aspectos de ambas melodías, contenga tonos en el rango de ambas canciones, repartidos en forma equitativa (recordando que la función de fitness se configuró para ponderar en partes iguales las distancias a cada pieza guía).
+
+Al analizar las representaciones de la distribución de tonos para los archivos MIDI de entrada y el archivo MIDI producido por la estrategia número 5, vemos que el rango tonal de la canción "Overworld" varía, aproximadamente, entre 65 y 85, el rango de "Let It Be" varía entre 53 y 73 y el rango del resultado creado por la estrategia 5 varía entre 32 y 66, donde el tono más frecuente en cada caso es 73, 64 y 51, respectivamente. Concluímos así que el algoritmo falla en abarcar el rango tonal completo de ambas melodías, dado que emplea mayormente tonos ubicados en la parte baja del espectro, dando lugar posiblemente a un resultado poco equilibrado en términos musicales.
+
+### Aplicación del algoritmo a la evolución de duraciones
+
+Realizando pequeños ajustes a la función de compresión para poder manipular números decimales, fue posible replicar el experimento para la duración de las notas musicales en lugar de los tonos. Si bien con un poco menos de diferencia entre sí, los resultados obtenidos mostraron nuevamente que la NCD funciona como indicador de progreso en un proceso evolutivo, al menos a nivel teórico. 
+
+En esta ocasión, sin embargo, si bien la estrategia número 5 mostró una clara superioridad durante las primeras 300 generaciones, al finalizar el proceso evolutivo tanto las estrategias número 2 (recombinación doble) como número 5 (recombinación cuádruple) finalizaron empatadas con el mejor valor de fitness obtenido, seguidas por la estrategia número 1 (recombinación simple). Este resultado pone en duda entonces la ventaja de haber utilizado técnicas que amplíen el espacio de búsqueda al inicio del proceso, ya que evidentemente su utilización no tuvo el mismo efecto que en el caso del algoritmo aplicado a los tonos relativos.
+
+#### Distribución temporal de las notas musicales
+
+Así como se realizó con la distribución de los tonos musicales, resulta útil y necesario analizar el resultado producido por el algoritmo en términos musicales, para lo cual esta vez evaluamos qué duraciones predominan en las notas contenidas por el archivo MIDI generado por la estrategia número 5.
+
+Vemos que, para la canción "Overworld", es posible considerar que todas las notas tienen la misma duración de 0.095s, ya que si bien el diagrama de barras generado para tal melodía muestra diferentes duraciones, en la práctica estas resultan indistinguibles una de otra al momento de escuchar la melodía. Por otro lado, la pista de "Let It Be" presenta duraciones que varían, aproximadamente, entre los 0.20s y 2.75s, siendo las duraciones más frecuentes las de 0.50s o menos. Finalmente, el resultado obtenido por la estrategia evolutiva número 5 presenta duraciones que varían entre los 0.80s y los 7.70s, con las más frecuentes ubicadas en torno a los 1.50s de duración. De esta forma, es posible afirmar que el resultado obtenido por el algoritmo "estira" excesivamente la duración de las notas, produciendo un efecto que seguramente sea poco atractivo a nivel musical.
 
 ## Conclusión
 
