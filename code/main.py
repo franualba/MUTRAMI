@@ -580,7 +580,25 @@ def plot_duration_distributions_side_by_side(midi_file_1, midi_file_2, midi_file
     plt.tight_layout()
     plt.show()
 
+def plot_survey_responses(input_csv_file):
+    df = pd.read_csv(input_csv_file)
+
+    count = df['Pregunta 1'].value_counts().sort_index()
+
+    plt.figure(figsize=(5, 3))
+    count.plot(kind='bar', color='skyblue', edgecolor='black')
+    plt.title('Cantidad de votos por estrategia (Pregunta 1)')
+    plt.xlabel('')
+    plt.ylabel('Cantidad de votos')
+    plt.xticks(rotation=0)
+    plt.tight_layout()
+    # plt.savefig('barras_estrategias.png')
+    plt.show()
+
 ### Testing zone ###
+
+survey_file = "../survey-responses.csv"
+plot_survey_responses(survey_file)
 
 # test_pop = generate_random_population(100, 50)
 
@@ -660,7 +678,8 @@ mode = 'duration'
 
 #     combine_evolved_sequences_to_midi(pitch_seq, duration_seq, None, midi_input_1, output_name)
 
-midi_best_pitch = "../midi_files/duration_best_evolution_output_strategy5_30runs_500pop_75ind_1000gen.mid"
-midi_best_duration = "../midi_files/duration_best_evolution_output_strategy5_1runs_500pop_75ind_1000gen.mid"
+# midi_best_pitch = "../midi_files/duration_best_evolution_output_strategy5_30runs_500pop_75ind_1000gen.mid"
+# midi_best_duration = "../midi_files/duration_best_evolution_output_strategy5_1runs_500pop_75ind_1000gen.mid"
 
-plot_duration_distributions_side_by_side(midi_input_1, midi_input_2, midi_best_duration, titles = ["Overworld (Mario Song)", "Let It Be", "Strategy 5 Evolved Result"])
+# plot_duration_distributions_side_by_side(midi_input_1, midi_input_2, midi_best_duration, titles = ["Overworld (Mario Song)", "Let It Be", "Strategy 5 Evolved Result"])
+

@@ -46,6 +46,7 @@
      - [Distribución tonal de las notas musicales](#distribución-tonal-de-las-notas-musicales)
    - [Aplicación del algoritmo a la evolución de duraciones](#aplicación-del-algoritmo-a-la-evolución-de-duraciones)
      - [Distribución temporal de las notas musicales](#distribución-temporal-de-las-notas-musicales)
+   - [Encuesta realizada](#encuesta-realizada)
 
 5. [Conclusión](#conclusión)
 
@@ -597,8 +598,27 @@ Así como se realizó con la distribución de los tonos musicales, resulta útil
 
 Vemos que, para la canción "Overworld", es posible considerar que todas las notas tienen la misma duración de 0.095s, ya que si bien el diagrama de barras generado para tal melodía muestra diferentes duraciones, en la práctica estas resultan indistinguibles una de otra al momento de escuchar la melodía. Por otro lado, la pista de "Let It Be" presenta duraciones que varían, aproximadamente, entre los 0.20s y 2.75s, siendo las duraciones más frecuentes las de 0.50s o menos. Finalmente, el resultado obtenido por la estrategia evolutiva número 5 presenta duraciones que varían entre los 0.80s y los 7.70s, con las más frecuentes ubicadas en torno a los 1.50s de duración. De esta forma, es posible afirmar que el resultado obtenido por el algoritmo "estira" excesivamente la duración de las notas, produciendo un efecto que seguramente sea poco atractivo a nivel musical.
 
+### Encuesta realizada
+
+Para contar con una validación adicional respecto de los resultados obtenidos, se realizó una breve encuesta en la cuál se preguntó acerca de qué tan "agradable" se percibían 3 composiciones musicales obtenidas por medio de la evolución de tonos: la composición generada por la estrategia número 5 (recombinación de cuatro puntos), la generada por la estrategia número 6 (recombinación mixta: doble, triple y simple) y la producida por la estrategia número 7 (solución aleatoria). Los resultados pueden visualizarse en la siguiente figura:
+
+<div align="center">
+
+![](./plots/survey_question1_responses.png)  
+<b>Figura 14.</b> Cantidad de votos por estrategia consultada en la encuesta.
+</div>
+
+Como es posible apreciar, la estrategia más votada fue la número 5 con 13 votos (44.8%), seguida por la estrategia 7 con 10 votos (34.5%) y en último lugar la estrategia 6 con 6 votos (20.7%).
+
+Adicionalmente, se consultó si había sido posible reconocer alguna melodía de las escuchadas, a lo cual 18 de las 29 personas encuestadas respondió correctamente identificando la melodía "Overworld" del juego de Mario, mientras que el resto no logró identificar melodía alguna.
+
+Así, si bien el hecho de que la estrategia número 5 haya resultado la más votada se encuentra dentro de lo esperado, resulta curioso que haya sido por poco margen y que incluso la estrategia aleatoria haya quedado en segundo lugar por encima de una estrategia no-aleatoria, pensada específicamente para optimizar el proceso evolutivo. Estos resultados indican claramente y confirman que el algoritmo no logra combinar en forma satisfactoria aspectos de todas las melodías utiliadas como guía del proceso evolutivo, o que al menos no fue posible lograr dicho objetivo evolucionando únicamente las secuencias de tonos de las pistas involucradas.
+
 ## Conclusión
 
+Los resultados obtenidos pueden analizarse desde dos puntos de vista: el algorítmico y el musical. En relación al aspecto algorítmico, se demostró que la NCD presenta un gran potencial como indicador de semejanza entre distintas composiciones musicales, ya que es posible observar cómo su valor realmente aumenta o disminuye de la forma esperada dependiendo de si las pistas comparadas comparten más o menos componentes entre sí. Sin embargo, al enforcarnos en el apartado musical, resulta evidente que esta métrica por sí sola es insuficiente para lograr el objetivo de integrar componentes musicales de distintas melodías, para lo cual debería considerarse en un futuro trabajo la posibilidad de agregar restricciones al proceso evolutivo (por ejemplo, que una determinada variable del resultado no pueda exceder un cierto rango de valores, en base a un análisis de los valores que toma esa variable en las piezas guía) y de experimentar integrando a la evolución más aspectos de las notas musicales, principalmente duración y ritmo. En relación a esto último, sería conveniente además profundizar sobre el efecto de aplicar la NCD sobre secuencias de números decimales cuyos valores son muy parecidos entre sí, ya que ese es otro factor que muy probablemente haya penalizado en forma significativa la efectividad de la NCD al momento de evolucionar las secuencias de duración de las notas.
+
+Mas allá de lo mencionado anteriormente, el trabajo realizado pone en perspectiva la utilidad de los algoritmos de compresión para funcionar como parte de la función de idoneidad en algoritmos genéticos aplicados al ámbito musical, remarcando de igual forma la necesidad de acompañar el proceso evolutivo con técnicas complementarias para obtener mejores resultados.
 
 ## Bibliografía
 
