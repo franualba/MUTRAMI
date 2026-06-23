@@ -20,11 +20,10 @@
        - 3.4.1. [Selección por Elitismo](#341-selección-por-elitismo)
        - 3.4.2. [Selección para Reproducción](#342-selección-para-reproducción)
      - 3.5. [Operadores de Recombinación](#35-operadores-de-recombinación)
-       - 3.5.1. [Recombinación de Un Punto (Estrategia 1)](#351-recombinación-de-un-punto-estrategia-1)
-       - 3.5.2. [Recombinación de Dos Puntos (Estrategia 2)](#352-recombinación-de-dos-puntos-estrategia-2)
-       - 3.5.3. [Recombinación de Tres Puntos (Estrategia 4)](#353-recombinación-de-tres-puntos-estrategia-4)
-       - 3.5.4. [Recombinación de Cuatro Puntos (Estrategia 5)](#354-recombinación-de-cuatro-puntos-estrategia-5)
-       - 3.5.5. [Estrategias Mixtas](#355-estrategias-mixtas)
+       - 3.5.1 [Recombinación de Un Punto](#351-recombinación-de-un-punto)
+       - 3.5.2 [Recombinación de Dos Puntos](#352-recombinación-de-dos-puntos)
+       - 3.5.3 [Recombinación de Tres Puntos](#353-recombinación-de-tres-puntos)
+       - 3.5.4 [Recombinación de Cuatro Puntos](#354-recombinación-de-cuatro-puntos)
      - 3.6. [Operador de Mutación](#36-operador-de-mutación)
      - 3.7. [Reemplazo Generacional](#37-reemplazo-generacional)
      - 3.8. [Criterio de Terminación](#38-criterio-de-terminación)
@@ -33,13 +32,14 @@
    - 5. [Algoritmo de Compresión](#5-algoritmo-de-compresión)
 
 3. [Diseño Experimental](#diseño-experimental)
-   - [Material utilizado y preprocesamiento](#material-utilizado-y-preprocesamiento)
+   - [Material Utilizado y Preprocesamiento](#material-utilizado-y-preprocesamiento)
    - [Métricas de Evaluación](#métricas-de-evaluación)
-   - [Evaluación perceptual complementaria](#evaluación-perceptual-complementaria)
+   - [Evaluación Perceptual Complementaria](#evaluación-perceptual-complementaria)
    - [Herramientas Utilizadas](#herramientas-utilizadas)
    - [Detalle de los Experimentos Realizados](#detalle-de-los-experimentos-realizados)
      - [Evolución de tonos relativos](#evolución-de-tonos-relativos)
-     - [Distribución tonal de las piezas utilizadas](#distribución-tonal-de-las-piezas-utilizadas)
+     - [Distribución tonal de las piezas utilizadas como guía](#distribución-tonal-de-las-piezas-utilizadas-como-guía)
+     - [Estrategias empleadas](#estrategias-empleadas)
      - [Evolución de la duración de las notas](#evolución-de-la-duración-de-las-notas)
      - [Comparación de la distribución en la duración de las notas](#comparación-de-la-distribución-en-la-duración-de-las-notas)
 
@@ -226,7 +226,7 @@ $$P_t^{reproduction} = \{I_3, I_4, ..., I_{\lfloor 0.25P \rfloor}\}$$
 
 Los operadores de recombinación toman dos individuos padre y generan descendencia combinando sus características genéticas. Para cada estrategia, dados dos padres $x = [x_1, x_2, ..., x_n]$ y $y = [y_1, y_2, ..., y_n]$, se obtienen dos descendientes $o_1$ y $o_2$.
 
-##### 3.5.1 Recombinación de Un Punto (Estrategia 1)
+##### 3.5.1 Recombinación de Un Punto
 
 Se selecciona aleatoriamente un punto de corte $k \in [1, n-1]$:
 
@@ -237,7 +237,7 @@ $$o_2 = [y_1, y_2, ..., y_k, x_{k+1}, x_{k+2}, ..., x_n]$$
 $$o_1 = [2, -1, -1, 3, -2]$$
 $$o_2 = [1, 2, 3, -2, 1]$$
 
-##### 3.5.2 Recombinación de Dos Puntos (Estrategia 2)
+##### 3.5.2 Recombinación de Dos Puntos
 
 Se seleccionan dos puntos de corte $k_1, k_2$ con $k_1 < k_2$:
 
@@ -248,21 +248,16 @@ $$o_2 = [y_1, ..., y_{k_1}, x_{k_1+1}, ..., x_{k_2}, y_{k_2+1}, ..., y_n]$$
 $$o_1 = [2, 2, -1, -2, 1]$$
 $$o_2 = [1, -1, 3, 3, -2]$$
 
-##### 3.5.3 Recombinación de Tres Puntos (Estrategia 4)
+##### 3.5.3 Recombinación de Tres Puntos
 
 Se seleccionan tres puntos de corte $k_1 < k_2 < k_3$:
 
 $$o_1 = [x_1, ..., x_{k_1}, y_{k_1+1}, ..., y_{k_2}, x_{k_2+1}, ..., x_{k_3}, y_{k_3+1}, ..., y_n]$$
 $$o_2 = [y_1, ..., y_{k_1}, x_{k_1+1}, ..., x_{k_2}, y_{k_2+1}, ..., y_{k_3}, x_{k_3+1}, ..., x_n]$$
 
-##### 3.5.4 Recombinación de Cuatro Puntos (Estrategia 5)
+##### 3.5.4 Recombinación de Cuatro Puntos
 
 Similar al patrón anterior, se seleccionan cuatro puntos de corte y se alternan los segmentos entre padres.
-
-##### 3.5.5 Estrategias Mixtas
-
-- **Estrategia 3**: Aplica recombinación de dos puntos durante el 20% inicial de generaciones, luego recombinación de un punto.
-- **Estrategia 6**: Utiliza diferentes tipos de recombinación en fases: dos puntos (generaciones 1-200), tres puntos (201-500), un punto (501+).
 
 #### 3.6 Operador de Mutación
 
@@ -432,11 +427,13 @@ A modo de recordatorio, la estrategia de evolución principal adoptada consiste 
 6. Aplicar mutación a todos los individuos excepto a la élite preservada.
 7. Repetir desde el paso 2 hasta llegar al número de generaciones deseado.
 
-### Distribución tonal de las piezas utilizadas
+### Distribución tonal de las piezas utilizadas como guía
 
 Antes de analizar las salidas generadas, conviene observar la distribución tonal de las melodías guía. En este trabajo, "Overworld" se mueve aproximadamente entre los tonos 65 y 85, con un tono más frecuente alrededor de 73, mientras que "Let It Be" se concentra aproximadamente entre 53 y 73, con un pico cercano a 64. Esta información permite interpretar luego si la melodía generada conserva parte del rango de ambas piezas o si se desplaza hacia una zona tonal más estrecha.
 
 La comparación gráfica completa entre las dos piezas de entrada y la salida evolutiva se presenta más adelante en la Figura 11.
+
+### Estrategias empleadas
 
 Con el propósito de investigar la mejor relación entre exploración y explotación del algoritmo, se experimenta con distintas estrategias de recombinación, identificadas de la siguiente forma:
 
