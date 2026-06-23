@@ -597,8 +597,8 @@ def plot_survey_responses(input_csv_file):
 
 ### Testing zone ###
 
-survey_file = "../survey-responses.csv"
-plot_survey_responses(survey_file)
+# survey_file = "../survey-responses.csv"
+# plot_survey_responses(survey_file)
 
 # test_pop = generate_random_population(100, 50)
 

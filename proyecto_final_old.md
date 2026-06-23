@@ -33,13 +33,11 @@
    - 5. [Algoritmo de Compresión](#5-algoritmo-de-compresión)
 
 3. [Diseño Experimental](#diseño-experimental)
-   - [Material utilizado y preprocesamiento](#material-utilizado-y-preprocesamiento)
    - [Métricas de Evaluación](#métricas-de-evaluación)
-   - [Evaluación perceptual complementaria](#evaluación-perceptual-complementaria)
    - [Herramientas Utilizadas](#herramientas-utilizadas)
    - [Detalle de los Experimentos Realizados](#detalle-de-los-experimentos-realizados)
      - [Evolución de tonos relativos](#evolución-de-tonos-relativos)
-     - [Distribución tonal de las piezas utilizadas](#distribución-tonal-de-las-piezas-utilizadas)
+     - [Comparación de la distribución en los tonos de las notas](#comparación-de-la-distribución-en-los-tonos-de-las-notas)
      - [Evolución de la duración de las notas](#evolución-de-la-duración-de-las-notas)
      - [Comparación de la distribución en la duración de las notas](#comparación-de-la-distribución-en-la-duración-de-las-notas)
 
@@ -57,13 +55,11 @@
 
 ## Introducción
 
-El presente proyecto tiene como objetivo estudiar si un algoritmo genético puede generar secuencias melódicas nuevas a partir de dos pistas MIDI de referencia, conservando en mayor o menor medida rasgos musicales de esas guías. Para ello, la métrica central del trabajo es la Normalized Compression Distance (NCD), utilizada tanto como medida de distancia/similitud entre secuencias como base de la función de fitness que guía la evolución.
+El presente proyecto tiene como principal objetivo evaluar el rendimiento de un algoritmo genético para generar piezas musicales, más específicamente, para crear nuevas composiciones musicales partiendo de un determinado número de pistas de entrada, y que estas nuevas creaciones evoquen de alguna forma aspectos musicales de las piezas originales.
 
-Por motivos prácticos, no se busca una transferencia completa de aspectos musicales entre melodías, sino que se persigue la evolución de secuencias melódicas discretas, primero sobre tonos relativos y luego sobre duraciones, guiadas por melodías de referencia. Ese recorte permite estudiar con mayor control la relación entre la representación musical y el comportamiento del algoritmo.
+La aplicación de algoritmos de machine learning al campo de la música ha resultado de interés a lo largo de mucho tiempo, debido en primer lugar a la dificultad de lograr capturar todos los patrones y sutilezas que residen en una composición musical, ya sea con el fin de crear nuevas composiciones o de clasificar grupos de canciones ya existentes según género, intérprete, tipo de instrumentos, etc., y por otro lado debido también a lo subjetivo que puede resultar valorar las cualidades musicales de una determinada pieza. Actualmente, y de acuerdo a lo investigado, la gran mayoría de soluciones aplicadas a este campo se apoyan principalmente en la utilización de algoritmos de aprendizaje profundo para extraer características y patrones musicales, obteniendo resultados destacables. Sin embargo, dado que este tipo de algoritmos conllevan un costo computacional muy alto, resulta interesante considerar la posibilidad de aplicar otro tipo de algoritmos para este fin, y es por eso que para este trabajo en particular se propone entonces la utlización de un algoritmo genético.
 
-La elección de algoritmos genéticos responde a que el problema se formula como una búsqueda sobre un espacio simbólico relativamente pequeño y bien definido, donde interesa comparar variantes de recombinación, elitismo y mutación. Frente a enfoques como redes neuronales profundas, que exigirían más datos, mayor costo computacional y un proceso de entrenamiento menos interpretable, el algoritmo genético ofrece un laboratorio más directo para experimentar con la influencia de cada operador sobre la similitud musical obtenida.
-
-En las siguientes secciones se presentan primero los fundamentos teóricos musicales y algorítmicos, luego el material utilizado y el preprocesamiento aplicado a los archivos MIDI, después las métricas y el diseño experimental, y finalmente los resultados y su análisis, incluyendo una validación perceptual complementaria mediante encuesta.
+En las siguientes secciones se amplía acerca de los fundamentos teóricos (tanto musicales como algorítmicos) necesarios para entender el funcionamiento del algoritmo y sus limitaciones, se presenta el diseño de los experimentos llevados adelante para evaluar su rendimiento junto con los resultados obtenidos y finalmente se analizan estos resultados y se comenta respecto de posibles mejoras o modificaciones.
 
 ## Marco Teórico
 
@@ -204,23 +200,19 @@ siendo $C$ el algoritmo de compresión utilizado y $xy$ la concatenación de las
 
 ##### 3.4.1 Selección por Elitismo
 
-En este proyecto, elitismo significa conservar intactos los dos mejores individuos de cada generación. Además, antes de la reproducción se mantiene como base el 75% superior de la población ordenada por fitness. Formalmente, si $P_t$ es la población en la generación $t$ ordenada por fitness descendente:
+Se aplica una estrategia de selección elitista donde se conservan los mejores individuos. Formalmente, si $P_t$ es la población en la generación $t$ ordenada por fitness descendente:
 
 $$P_t = \{I_1, I_2, ..., I_P\} \text{ donde } f(I_1) \geq f(I_2) \geq ... \geq f(I_P)$$
 
-Los dos mejores individuos quedan reservados como élite:
-
-$$P_t^{elite} = \{I_1, I_2\}$$
-
-Luego se elimina el 25% menos apto y se conserva el resto de la población ordenada:
+Se elimina el 25% menos apto:
 
 $$P_t^{selected} = \{I_1, I_2, ..., I_{\lfloor 0.75P \rfloor}\}$$
 
 ##### 3.4.2 Selección para Reproducción
 
-Para la recombinación se utiliza el bloque superior de individuos no elitistas, de forma que los dos mejores no participen en el cruce. En términos prácticos, esto equivale a tomar aproximadamente el 25% más apto disponible después de reservar la élite.
+Para la recombinación, se selecciona el 25% más apto de la población:
 
-$$P_t^{reproduction} = \{I_3, I_4, ..., I_{\lfloor 0.25P \rfloor}\}$$
+$$P_t^{reproduction} = \{I_1, I_2, ..., I_{\lfloor 0.25P \rfloor}\}$$
 
 #### 3.5 Operadores de Recombinación
 
@@ -279,10 +271,9 @@ $$I_i^{mutated} = [2, -1, 4, -2, 1]$$
 
 Luego de aplicar los operadores genéticos descriptos hasta el momento, se forma la nueva población $P_{t+1}$ mediante:
 
-1. **Elitismo explícito**: se copian intactos los 2 mejores individuos de $P_t$.
-2. **Selección para reproducción**: se toma el grupo superior restante, se empareja de a dos y se generan descendientes por recombinación.
-3. **Reposición**: se recupera el 25% inferior eliminado en la selección truncada.
-4. **Mutación**: se aplica mutación a todos los individuos excepto a la élite preservada.
+1. **Elitismo**: Se conservan los mejores individuos de $P_t$
+2. **Descendencia**: Se agregan los individuos generados por recombinación (es decir, se recupera el 25% eliminado anteriormente)
+3. **Mutación**: Se aplica mutación a toda la población resultante
 
 Formalmente:
 $$P_{t+1} = \text{mutate}(\text{elite}(P_t) \cup \text{offspring}(P_t^{reproduction}))$$
@@ -305,14 +296,14 @@ Entradas: G_1, G_2 (melodías guía), P (tamaño población), n (longitud indivi
 1. t ← 0
 2. P_t ← inicializar_poblacion_aleatoria(P, n)
 3. Mientras t < G_max:
-    a. Para cada I_i ∈ P_t: calcular f(I_i)
-    b. P_t ← ordenar_por_fitness(P_t)   
-    c. elite ← conservar_los_2_mejores(P_t)
-    d. P_selected ← seleccionar_top_75_por_ciento(P_t)
-    e. offspring ← aplicar_recombinacion(P_selected sin elite, estrategia)
-    f. P_t ← elite ∪ offspring
-    g. P_t ← aplicar_mutacion(P_t) excepto elite
-    h. t ← t + 1
+   a. Para cada I_i ∈ P_t: calcular f(I_i)
+   b. P_t ← ordenar_por_fitness(P_t)
+   c. P_selected ← seleccionar_elite(P_t, 0.75)
+   d. P_reproduction ← seleccionar_mejores(P_t, 0.25)
+   e. offspring ← aplicar_recombinacion(P_reproduction, estrategia)
+   f. P_t ← P_selected ∪ offspring
+   g. P_t ← aplicar_mutacion(P_t)
+   h. t ← t + 1
 4. Retornar mejor_individuo(P_t)
 ```
 
@@ -360,22 +351,6 @@ En resumen, la elección de LZ77 y la librería zlib responde a la búsqueda de 
 
 ## Diseño Experimental
 
-### Material utilizado y preprocesamiento
-
-Para los experimentos se utilizaron siempre dos archivos MIDI guía puntuales: "Overworld" y "Let It Be". Estos se eligieron porque presentan melodías reconocibles y contrastantes, útiles para comprobar si el algoritmo conservaba rasgos musicales de referencia en lugar de producir secuencias puramente aleatorias.
-
-Los archivos se procesaron utilizando la librería `pretty-midi`, tomando la pista o instrumento melódico principal. En la implementación utilizada, esto corresponde a trabajar con `instruments[0].notes`, por lo que se conservó la pista principal y se descartaron acompañamientos, capas armónicas o pistas no melódicas para evitar mezclar materiales heterogéneos.
-
-De cada nota se extrajo la altura (`pitch`), la velocidad (`velocity`) y los instantes de inicio y fin (`start` y `end`). A partir de esos datos se construyeron las representaciones necesarias para el algoritmo:
-
-- tonos relativos: diferencia entre tonos consecutivos;
-- duraciones: `end - start`;
-- ritmos: silencios entre notas consecutivas, calculados como `start(i+1) - end(i)`.
-
-Considerando que las dos melodías guía no tenían la misma cantidad de notas, la secuencia más larga se recortó al tamaño de la más corta para que la comparación mediante NCD se realizara sobre tramos equivalentes. De forma análoga, las secuencias utilizadas por el algoritmo genético se construyeron con una longitud fija de 50 o 75 elementos, según el experimento.
-
-Finalmente, los resultados generados por el algoritmo se reconstruyeron como archivos MIDI reutilizando la pista base como referencia temporal y de velocidad. Esto es, gracias a la librería `pretty-midi`, es posible manipular un archivo MIDI como un conjunto de varios arreglos de números, donde el primer arreglo (`instruments[0]`) se corresponde con la melodía principal. Del archivo MIDI se extrae entonces únicamente esa melodía, se evoluciona, y luego se vuelve a generar un archivo MIDI con la melodía evolucionada, pero las duraciones y velocidades originales, sin evolucionar. Para la salida basada en tonos, las diferencias evolutivas se reexpresaron como alturas audibles sobre la melodía original; para duraciones y ritmos, se sustituyeron los valores correspondientes y se escribió nuevamente un archivo MIDI para su análisis posterior.
-
 ### Métricas de Evaluación
 
 Para determinar el rendimiento del algoritmo genético propuesto, se emplearon las siguientes métricas principales:
@@ -385,11 +360,7 @@ Para determinar el rendimiento del algoritmo genético propuesto, se emplearon l
 - **Tiempos de ejecución**: se mide el tiempo total y el tiempo promedio por ejecución para comparar la eficiencia computacional de cada estrategia.
 - **Curvas de convergencia**: se grafican los valores de fitness a lo largo de las generaciones para analizar la velocidad de convergencia y el comportamiento evolutivo de las distintas estrategias.
 
-Estas métricas buscan comparar objetivamente el desempeño de las diferentes variantes del algoritmo y analizar el impacto de los parámetros y operadores utilizados. La NCD y el fitness se emplean como medidas objetivas de similitud, pero no bastan por sí solos para juzgar la calidad musical completa de una salida, por lo que se complementan con una validación perceptual (encuesta).
-
-### Evaluación perceptual complementaria
-
-Además de las métricas objetivas, se realizó una encuesta breve para registrar cuál de varias composiciones resultaba más agradable o reconocible para los oyentes. Esta evaluación no forma parte de la función de fitness ni interviene en la evolución del algoritmo; se utiliza únicamente como validación subjetiva complementaria, necesaria porque la calidad musical no puede capturarse por completo con una sola métrica algorítmica.
+Estas métricas buscan comparar objetivamente el desempeño de las diferentes variantes del algoritmo y analizar el impacto de los parámetros y operadores utilizados.
 
 ### Herramientas Utilizadas
 
@@ -412,10 +383,10 @@ Estas herramientas permitieron implementar, ejecutar y analizar el algoritmo de 
 
 Para poner a prueba el rendimiento del algoritmo planteado se establecieron como punto de partida los siguientes lineamientos:
 
-1. Sólo se trabaja con la melodía de los archivos musicales, dejando de lado aspectos como la armonía o el ritmo. Esto implica que, para un archivo MIDI en particular obtenido de internet, se debe inspeccionar el número de pistas incluidas en el mismo y conservar únicamente la pista melódica principal, que en la práctica corresponde al primer instrumento disponible en los archivos empleados.
+1. Sólo se trabaja con la melodía de los archivos musicales, dejando de lado aspectos como la armonía o el ritmo. Esto implica que, para un archivo MIDI en particular obtenido de internet, se debe inspeccionar el número de pistas incluídas en el mismo, quedándonos sólo con la parte melódica en caso de encontrar más de una pista.
 2. De acuerdo a lo investigado (ver [2]), si se modifica la duración de cada nota en una melodía sin afectar sus tonos, sigue siendo posible reconocer la melodía original (en otras palabras, la duración de cada nota no altera de forma sustancial la esencia de una melodía). Sin embargo esto no ocurre con el caso opuesto, es decir, al alterar los tonos de cada nota de una melodía manteniendo sus duraciones, se ha comprobado que la melodía deja de ser reconocible. Es por este motivo que se experimenta principalmente con la evolución de tonos relativos, dejando el proceso análogo para la duración de las notas como un indicador del funcionamiento de la NCD como parte de la función de aptitud.
 3. Cada individuo de la población consiste en una secuencia de diferencias tonales, es decir, se trabaja con tonos relativos y no absolutos.
-4. Para guiar el proceso evolutivo, se toman como guía dos secuencias melódicas de la misma longitud que los individuos de la población. Cuando las pistas originales no coinciden en cantidad de notas, se recorta la más larga hasta igualarla con la más corta antes de calcular la NCD. La función de fitness calcula entonces el valor de aptitud de cada individuo partiendo del valor de la NCD entre la secuencia tonal del individuo y cada secuencia guía, y ponderando estas distancias en partes iguales según el número de secuencias guía (en este caso, se utilizan 2 secuencias guía, por lo que cada valor de la NCD se multiplica por 0.5 para obtener el valor de aptitud final de un individuo).
+4. Para guiar el proceso evolutivo, se toman como guía dos secuencias melódicas, de la misma longitud que los individios de la población. La función de fitness calcula entonces el valor de aptitud de cada individuo partiendo del valor de la NCD entre la secuencia tonal del individuo y la secuencia de la melodía guía, para cada secuencia guía, y ponderando estas distancias en partes iguales según el número de secuencias guía (en este caso, se utilizan 2 secuencias guía, por lo que cada valor de la NCD se multiplica por 0.5 para obtener el valor de aptitud final de un individuo).
 5. La mutación se realiza eligiendo en forma aleatoria un valor puntual de la secuencia de tonos relativos del individuo, y adicionándole un valor también aleatorio en el rango [-2, 2].
 6. Los tonos de cada individuo en la población inicial se inicializan en forma aleatoria con un valor en el rango [-20, 20].
 7. Se utiliza un tamaño de población de 500 individuos.
@@ -426,17 +397,10 @@ A partir de estas disposiciones iniciales, se fue experimentando con distintos v
 A modo de recordatorio, la estrategia de evolución principal adoptada consiste en:
 1. Inicializar una población en forma aleatoria.
 2. Calcular el valor de fitness de cada individuo y ordenar la población en forma descendente de acuerdo a este valor.
-3. Conservar sin cambios a los 2 mejores individuos como élite explícita.
-4. Eliminar el 25% menos apto de individuos de la población y usar el tramo superior restante para generar descendencia.
-5. Aplicar una estrategia de recombinación al 25% de los individuos más aptos, y agregar el resultado al resto de la población para sustituir el 25% eliminado en el paso anterior.
-6. Aplicar mutación a todos los individuos excepto a la élite preservada.
-7. Repetir desde el paso 2 hasta llegar al número de generaciones deseado.
-
-### Distribución tonal de las piezas utilizadas
-
-Antes de analizar las salidas generadas, conviene observar la distribución tonal de las melodías guía. En este trabajo, "Overworld" se mueve aproximadamente entre los tonos 65 y 85, con un tono más frecuente alrededor de 73, mientras que "Let It Be" se concentra aproximadamente entre 53 y 73, con un pico cercano a 64. Esta información permite interpretar luego si la melodía generada conserva parte del rango de ambas piezas o si se desplaza hacia una zona tonal más estrecha.
-
-La comparación gráfica completa entre las dos piezas de entrada y la salida evolutiva se presenta más adelante en la Figura 11.
+3. Eliminar el 25% menos apto de individuos de la población.
+4. Aplicar una estrategia de recombinación al 25% de los individuos más aptos, y agregar el resultado al resto de la población para sustituir el 25% eliminado en el paso anterior.
+5. Aplicar mutación a todos los individuos.
+6. Repetir desde el paso 2 hasta llegar al número de generaciones deseado.
 
 Con el propósito de investigar la mejor relación entre exploración y explotación del algoritmo, se experimenta con distintas estrategias de recombinación, identificadas de la siguiente forma:
 
@@ -446,7 +410,7 @@ Con el propósito de investigar la mejor relación entre exploración y explotac
 4. **Estrategia 4**: se utiliza siempre recombinación de tres puntos
 5. **Estrategia 5**: se utiliza siempre recombinación de cuatro puntos
 6. **Estrategia 6**: las primeras 200 generaciones utilizan solo recombinación doble, entre las generaciones 201 y 500 se emplea solo recombinación triple, y de la generación 501 en adelante se aplica únicamente recombinación simple.
-7. **Estrategia 7**: solución aleatoria (no emplea recombinación ni mutación, pero sí conserva los 2 mejores individuos por elitismo) 
+7. **Estrategia 7**: solución aleatoria (no emplea recombinación ni mutación, pero sí elitismo) 
 
 &nbsp;
 
@@ -497,7 +461,7 @@ Las siguientes figuras muestran los resultados obtenidos para distintos experime
 <div align="center">
 
 ![](./plots/plot_indsize50_popsize500_gens100_multi_strategy_runs30_elitism_random.png)  
-<b>Figura 6.</b> Muestra el rendimiento de cada estrategia como en la Figura 3, pero esta vez empleando elitismo explícito, conservando las 2 mejores soluciones de cada generación, e incluyendo también a modo de comparación el rendimiento de una solución aleatoria (la cual no emplea ni recombinación ni mutación, pero sí elitismo). Esta prueba consistió en 30 procesos de 100 generaciones cada uno (no 1000), donde cada generación consta de 500 individuos de 50 tonos relativos cada uno.
+<b>Figura 6.</b> Muestra el rendimiento de cada estrategia como en la Figura 3, pero esta vez empleando elitismo (me quedo con las 2 mejores soluciones de cada generación) e incluyendo también a modo de comparación el rendimiento de una solución aleatoria (la cual no emplea ni recombinación ni mutación, pero si elitismo). Esta prueba consistió en 30 procesos de 100 generaciones cada uno (no 1000), donde cada generación consta de 500 individuos de 50 tonos relativos cada uno.
 </div>
 
 &nbsp;
@@ -558,7 +522,7 @@ A continuación se presentan también los distintos tiempos obtenidos por cada e
 
 &nbsp;
 
-### Comparación de la distribución tonal de la salida generada
+### Comparación de la distribución en los tonos de las notas
 
 <div align="center">
 
@@ -610,7 +574,7 @@ Con los primeros experimentos realizados se busca determinar un valor razonable 
 
 Posteriormente, se analiza el rendimiento de múltiples estrategias de recombinación utilizando un diagrama de líneas de tendencia, representando la variación en los valores de aptitud con el correr de las generaciones. Como es posible observar, por un margen pequeño respecto de la estrategia 1 (recombinación de un sólo punto), la estrategia número 2 (recombinación de dos puntos) obtiene el mejor resultado, notando además que esta estrategia es la que más rápido converge a un valor de fitness alto en las primeras generaciones del proceso evolutivo (más notoriamente entre las generaciones 50 y 400 aproximadamente). Esto se puede apreciar con más claridad en los acercamientos a las líneas de tendencia representados, siendo con la incorporación del operador de elitismo a cada estrategias y de los resultados generados por el algoritmo aleatorio a modo de referencia cuando más evidente resulta la diferencia en el rendimiento de cada enfoque.
 
-Viendo los resultados obtenidos al utilizar recombinación doble, se decide agregar nuevos experimentos a los ya realizados con el objetivo de investigar mejor la relación entre exploración y explotación lograda por cada estrategia, con la idea de que incrementar el tamaño del espacio de búsqueda en la etapa de exploración al inicio del proceso y posteriormente apuntalar la etapa de explotación pueda tener un impacto positivo en el valor final obtenido por la función de aptitud. A partir de los resultados obtenidos, puede observarse que todas las estrategias agregadas (4, 5 y 6) utilizando recombinación de tres y cuatro puntos obtienen finalmente mejores valores de aptitud que los de estrategias anteriores que sólo empleaban recombinación simple y doble, confirmando efectivamente la hipótesis de que mejorar la relación entre exploración y explotación impacta positivamente en los valores de aptitud de los individuos. 
+Viendo los resultados obtenidos al utilizar recombinación doble, se decide agregar nuevos experimentos a los ya realizados con el objetivo de investigar mejor la relación entre exploración y explotación lograda por cada estrategia, con la idea de que incrementar el tamaño del espacio de búsqueda en la etapa de exploración al incio del proceso y posteriormente apuntalar la etapa de explotación pueda tener un impacto positivo en el valor final obtenido por la función de aptitud. A partir de los resultados obtenidos, puede observarse que todas las estrategias agregadas (4, 5 y 6) utilizando recombinación de tres y cuatro puntos obtienen finalmente mejores valores de aptitud que los de estrategias anteriores que sólo empleaban recombinación simple y doble, confirmando efectivamente la hipótesis de que mejorar la relación entre exploración y explotación impacta positivamente en los valores de aptitud de los individuos. 
 
 De entre las estrategias que utilizan recombinación triple y cuádruple, la que mejores resultados obtuvo fue la estrategia número 5 (recombinación de 4 puntos), que logró incluso obtener mejores soluciones que el resto ya desde la generación número 80, siendo significativamente más rápida en converger que las demás implementaciones. Y si analizamos también el rendimiento promedio de cada estrategia (siempre en relación a los valores de fitness obtenidos por cada una), vemos nuevamente que la estrategia número 5 se mantiene como la que mejores resultados obtiene, pero esta vez la diferencia respecto de la estrategia número 4, que hizo uso de tres puntos de recombinación en todo el proceso evolutivo, se vuelve apreciablemente menos significativa. Por último, añadiendo al análisis los valores de aptitud mínimos alcanzados y su variación a lo largo del proceso, es posible concluir que las dos estrategias con mejores resultados obtenidos son las 4 y 5, donde a su vez en líneas generales esta última destaca sobre la otra por un margen muy pequeño, excepto si tenemos en cuenta la variación en los valores de aptitud, donde la estrategia 4 obtiene una ligera ventaja.
 
@@ -648,7 +612,7 @@ Como es posible apreciar, la estrategia más votada fue la número 5 con 13 voto
 
 Adicionalmente, se consultó si había sido posible reconocer alguna melodía de las escuchadas, a lo cual 18 de las 29 personas encuestadas respondió correctamente identificando la melodía "Overworld" del juego de Mario, mientras que el resto no logró identificar melodía alguna.
 
-Así, si bien el hecho de que la estrategia número 5 haya resultado la más votada se encuentra dentro de lo esperado, resulta curioso que haya sido por poco margen y que incluso la estrategia aleatoria haya quedado en segundo lugar por encima de una estrategia no-aleatoria, pensada específicamente para optimizar el proceso evolutivo. Estos resultados indican claramente y confirman que el algoritmo no logra combinar en forma satisfactoria aspectos de todas las melodías utilizadas como guía del proceso evolutivo, o que al menos no fue posible lograr dicho objetivo evolucionando únicamente las secuencias de tonos de las pistas involucradas.
+Así, si bien el hecho de que la estrategia número 5 haya resultado la más votada se encuentra dentro de lo esperado, resulta curioso que haya sido por poco margen y que incluso la estrategia aleatoria haya quedado en segundo lugar por encima de una estrategia no-aleatoria, pensada específicamente para optimizar el proceso evolutivo. Estos resultados indican claramente y confirman que el algoritmo no logra combinar en forma satisfactoria aspectos de todas las melodías utiliadas como guía del proceso evolutivo, o que al menos no fue posible lograr dicho objetivo evolucionando únicamente las secuencias de tonos de las pistas involucradas.
 
 ## Conclusión
 
