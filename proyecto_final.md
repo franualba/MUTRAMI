@@ -37,11 +37,12 @@
    - [Evaluación Perceptual Complementaria](#evaluación-perceptual-complementaria)
    - [Herramientas Utilizadas](#herramientas-utilizadas)
    - [Detalle de los Experimentos Realizados](#detalle-de-los-experimentos-realizados)
-     - [Evolución de tonos relativos](#evolución-de-tonos-relativos)
-     - [Distribución tonal de las piezas utilizadas como guía](#distribución-tonal-de-las-piezas-utilizadas-como-guía)
+     - [Distribución tonal y temporal de las piezas guía](#distribución-tonal-y-temporal-de-las-piezas-utilizadas-como-guía)
      - [Estrategias empleadas](#estrategias-empleadas)
+     - [Evolución de tonos relativos](#evolución-de-tonos-relativos)
+     - [Comparación de las distribuciones tonales obtenidas](#distribución-tonal-de-las-piezas-utilizadas-como-guía)
      - [Evolución de la duración de las notas](#evolución-de-la-duración-de-las-notas)
-     - [Comparación de la distribución en la duración de las notas](#comparación-de-la-distribución-en-la-duración-de-las-notas)
+     - [Comparación de las distribuciones temporales obtenidas](#comparación-de-la-distribución-en-la-duración-de-las-notas)
 
 4. [Análisis de resultados](#análisis-de-resultados)
    - [Aplicación del algoritmo a la evolución de los tonos](#aplicación-del-algoritmo-a-la-evolución-de-los-tonos)
@@ -57,9 +58,9 @@
 
 ## Introducción
 
-El presente proyecto tiene como objetivo estudiar si un algoritmo genético puede generar secuencias melódicas nuevas a partir de dos pistas MIDI de referencia, conservando en mayor o menor medida rasgos musicales de esas guías. Para ello, la métrica central del trabajo es la Normalized Compression Distance (NCD), utilizada tanto como medida de distancia/similitud entre secuencias como base de la función de fitness que guía la evolución.
+El presente proyecto tiene como objetivo estudiar si un algoritmo genético puede generar secuencias melódicas nuevas a partir de dos pistas MIDI de referencia ("Overworld" y "Let It Be"), conservando en mayor o menor medida rasgos musicales de esas guías. Para ello, la métrica central del trabajo es la Normalized Compression Distance (NCD), utilizada como medida de distancia/similitud entre secuencias y como base de la función de fitness que guía la evolución. 
 
-Por motivos prácticos, no se busca una transferencia completa de aspectos musicales entre melodías, sino que se persigue la evolución de secuencias melódicas discretas, primero sobre tonos relativos y luego sobre duraciones, guiadas por melodías de referencia. Ese recorte permite estudiar con mayor control la relación entre la representación musical y el comportamiento del algoritmo.
+Por motivos prácticos, no se busca una transferencia completa de aspectos musicales entre melodías, sino que se persigue la evolución de secuencias melódicas discretas, primero sobre tonos relativos y luego sobre duraciones, guiadas por las melodías de referencia. Ese recorte permite estudiar con mayor control la relación entre la representación musical y el comportamiento del algoritmo.
 
 La elección de algoritmos genéticos responde a que el problema se formula como una búsqueda sobre un espacio simbólico relativamente pequeño y bien definido, donde interesa comparar variantes de recombinación, elitismo y mutación. Frente a enfoques como redes neuronales profundas, que exigirían más datos, mayor costo computacional y un proceso de entrenamiento menos interpretable, el algoritmo genético ofrece un laboratorio más directo para experimentar con la influencia de cada operador sobre la similitud musical obtenida.
 
@@ -280,7 +281,7 @@ Luego de aplicar los operadores genéticos descriptos hasta el momento, se forma
 4. **Mutación**: se aplica mutación a todos los individuos excepto a la élite preservada.
 
 Formalmente:
-$$P_{t+1} = \text{mutate}(\text{elite}(P_t) \cup \text{offspring}(P_t^{reproduction}))$$
+$$P_{t+1} = \text{elite}(P_t) \cup\text{mutate}(\text{offspring}(P_t^{reproduction}))$$
 
 #### 3.8 Criterio de Terminación
 
@@ -382,7 +383,7 @@ Para determinar el rendimiento del algoritmo genético propuesto, se emplearon l
 
 Estas métricas buscan comparar objetivamente el desempeño de las diferentes variantes del algoritmo y analizar el impacto de los parámetros y operadores utilizados. La NCD y el fitness se emplean como medidas objetivas de similitud, pero no bastan por sí solos para juzgar la calidad musical completa de una salida, por lo que se complementan con una validación perceptual (encuesta).
 
-### Evaluación perceptual complementaria
+### Evaluación perceptiva complementaria
 
 Además de las métricas objetivas, se realizó una encuesta breve para registrar cuál de varias composiciones resultaba más agradable o reconocible para los oyentes. Esta evaluación no forma parte de la función de fitness ni interviene en la evolución del algoritmo; se utiliza únicamente como validación subjetiva complementaria, necesaria porque la calidad musical no puede capturarse por completo con una sola métrica algorítmica.
 
@@ -416,22 +417,26 @@ Para poner a prueba el rendimiento del algoritmo planteado se establecieron como
 7. Se utiliza un tamaño de población de 500 individuos.
 8. Se ejecuta 30 veces cada proceso evolutivo con el objetivo de obtener resultados más representativos del rendimiento de una estrategia. Por ejemplo, si una estrategia se ejecuta a lo largo de 100 generaciones, se repite 30 veces cada proceso de 100 generaciones y se agregan los resultados de cada generación al final para su posterior evaluación.
 
-A partir de estas disposiciones iniciales, se fue experimentando con distintos valores para algunos parámetros, puntualmente el número de individuos y el número de generaciones.
+Considerando estas disposiciones iniciales, se fue experimentando con distintos valores para algunos parámetros, puntualmente el número de individuos y el número de generaciones.
 
 A modo de recordatorio, la estrategia de evolución principal adoptada consiste en:
 1. Inicializar una población en forma aleatoria.
 2. Calcular el valor de fitness de cada individuo y ordenar la población en forma descendente de acuerdo a este valor.
-3. Conservar sin cambios a los 2 mejores individuos como élite explícita.
+3. Conservar sin cambios a los 2 mejores individuos (elitismo).
 4. Eliminar el 25% menos apto de individuos de la población y usar el tramo superior restante para generar descendencia.
 5. Aplicar una estrategia de recombinación al 25% de los individuos más aptos, y agregar el resultado al resto de la población para sustituir el 25% eliminado en el paso anterior.
 6. Aplicar mutación a todos los individuos excepto a la élite preservada.
 7. Repetir desde el paso 2 hasta llegar al número de generaciones deseado.
 
-### Distribución tonal de las piezas utilizadas como guía
+### Distribución tonal y temporal de las piezas utilizadas como guía
 
-Antes de analizar las salidas generadas, conviene observar la distribución tonal de las melodías guía. En este trabajo, "Overworld" se mueve aproximadamente entre los tonos 65 y 85, con un tono más frecuente alrededor de 73, mientras que "Let It Be" se concentra aproximadamente entre 53 y 73, con un pico cercano a 64. Esta información permite interpretar luego si la melodía generada conserva parte del rango de ambas piezas o si se desplaza hacia una zona tonal más estrecha.
+Antes de analizar las salidas generadas, conviene observar la distribución tonal de las melodías guía. En este trabajo, "Overworld" se mueve aproximadamente entre los tonos 65 y 85, con un tono más frecuente alrededor de 73, mientras que "Let It Be" se concentra aproximadamente entre 53 y 73, con un pico cercano a 64. 
 
-La comparación gráfica completa entre las dos piezas de entrada y la salida evolutiva se presenta más adelante en la Figura 11.
+En relación a la duración de las notas, en "Overworld" es posible considerar que todas tienen la misma duración de 0.095s, mientras que "Let It Be" presenta duraciones que varían, aproximadamente, entre los 0.20s y 2.75s, siendo las duraciones más frecuentes las de 0.50s o menos.
+
+Esta información permite interpretar luego si las melodías generadas por el algoritmo conservan parte del rango de ambas piezas o si se desplazan hacia una zona distinta.
+
+La comparación gráfica completa entre las dos piezas de entrada y la salida evolutiva se presenta más adelante en la Figura 11 (tonos) y Figura 13 (duraciones).
 
 ### Estrategias empleadas
 
@@ -445,11 +450,9 @@ Con el propósito de investigar la mejor relación entre exploración y explotac
 6. **Estrategia 6**: las primeras 200 generaciones utilizan solo recombinación doble, entre las generaciones 201 y 500 se emplea solo recombinación triple, y de la generación 501 en adelante se aplica únicamente recombinación simple.
 7. **Estrategia 7**: solución aleatoria (no emplea recombinación ni mutación, pero sí conserva los 2 mejores individuos por elitismo) 
 
-&nbsp;
-
-Las siguientes figuras muestran los resultados obtenidos para distintos experimentos:
-
 ### Evolución de tonos relativos
+
+Las siguientes figuras muestran los resultados obtenidos para los distintos experimentos:
 
 <div align="center">
 
