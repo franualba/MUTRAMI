@@ -34,10 +34,10 @@
 3. [Diseño Experimental](#diseño-experimental)
    - [Material Utilizado y Preprocesamiento](#material-utilizado-y-preprocesamiento)
    - [Métricas de Evaluación](#métricas-de-evaluación)
-   - [Evaluación Perceptual Complementaria](#evaluación-perceptual-complementaria)
+   - [Evaluación Perceptiva Complementaria](#evaluación-perceptiva-complementaria)
    - [Herramientas Utilizadas](#herramientas-utilizadas)
+   - [Distribución tonal y temporal de las piezas guía](#distribución-tonal-y-temporal-de-las-piezas-utilizadas-como-guía)
    - [Detalle de los Experimentos Realizados](#detalle-de-los-experimentos-realizados)
-     - [Distribución tonal y temporal de las piezas guía](#distribución-tonal-y-temporal-de-las-piezas-utilizadas-como-guía)
      - [Estrategias empleadas](#estrategias-empleadas)
      - [Evolución de tonos relativos](#evolución-de-tonos-relativos)
      - [Comparación de las distribuciones tonales obtenidas](#distribución-tonal-de-las-piezas-utilizadas-como-guía)
@@ -358,9 +358,9 @@ En resumen, la elección de LZ77 y la librería zlib responde a la búsqueda de 
 
 ### Material utilizado y preprocesamiento
 
-Para los experimentos se utilizaron siempre dos archivos MIDI guía puntuales: "Overworld" y "Let It Be". Estos se eligieron porque presentan melodías reconocibles y contrastantes, útiles para comprobar si el algoritmo conservaba rasgos musicales de referencia en lugar de producir secuencias puramente aleatorias.
+Para los experimentos se utilizaron siempre dos archivos MIDI guía puntuales: "Overworld" [10] y "Let It Be" [11]. Estos se eligieron porque presentan melodías reconocibles y contrastantes, útiles para comprobar si el algoritmo conservaba rasgos musicales de referencia en lugar de producir secuencias puramente aleatorias.
 
-Los archivos se procesaron utilizando la librería `pretty-midi`, tomando la pista o instrumento melódico principal. En la implementación utilizada, esto corresponde a trabajar con `instruments[0].notes`, por lo que se conservó la pista principal y se descartaron acompañamientos, capas armónicas o pistas no melódicas para evitar mezclar materiales heterogéneos.
+Los archivos se procesaron utilizando la librería `pretty-midi`, tomando la pista o instrumento melódico principal. En la implementación utilizada, esto corresponde a trabajar con `instruments[0].notes`, conservando la pista principal y descartando acompañamientos, capas armónicas o pistas no melódicas.
 
 De cada nota se extrajo la altura (`pitch`), la velocidad (`velocity`) y los instantes de inicio y fin (`start` y `end`). A partir de esos datos se construyeron las representaciones necesarias para el algoritmo:
 
@@ -404,6 +404,16 @@ El desarrollo y la experimentación del proyecto se realizaron utilizando las si
 
 Estas herramientas permitieron implementar, ejecutar y analizar el algoritmo de manera eficiente, facilitando la experimentación y la obtención de resultados reproducibles.
 
+### Distribución tonal y temporal de las piezas utilizadas como guía
+
+Antes de analizar las salidas generadas, conviene observar la distribución tonal de las melodías guía. En este trabajo, "Overworld" se mueve aproximadamente entre los tonos 65 y 85, con un tono más frecuente alrededor de 73, mientras que "Let It Be" se concentra aproximadamente entre 53 y 73, con un pico cercano a 64. 
+
+En relación a la duración de las notas, en "Overworld" es posible considerar que todas tienen la misma duración de 0.095s, mientras que "Let It Be" presenta duraciones que varían, aproximadamente, entre los 0.20s y 2.75s, siendo las duraciones más frecuentes las de 0.50s o menos.
+
+Esta información permite por un lado, interpretar luego si las melodías generadas por el algoritmo conservan parte del rango de ambas piezas o si se desplazan hacia una zona distinta, y por otro lado, determinar un intervalo de valores razonable a fin de utilizar como composición de los individuos ( que en el caso de los tonos es [-20,20] y en el caso de las duraciones [0.01, 2.2]).
+
+La comparación gráfica completa entre las dos piezas de entrada y la salida evolutiva se presenta más adelante en la Figura 11 (tonos) y Figura 13 (duraciones).
+
 ### Detalle de los Experimentos Realizados
 
 Para poner a prueba el rendimiento del algoritmo planteado se establecieron como punto de partida los siguientes lineamientos:
@@ -427,16 +437,6 @@ A modo de recordatorio, la estrategia de evolución principal adoptada consiste 
 5. Aplicar una estrategia de recombinación al 25% de los individuos más aptos, y agregar el resultado al resto de la población para sustituir el 25% eliminado en el paso anterior.
 6. Aplicar mutación a todos los individuos excepto a la élite preservada.
 7. Repetir desde el paso 2 hasta llegar al número de generaciones deseado.
-
-### Distribución tonal y temporal de las piezas utilizadas como guía
-
-Antes de analizar las salidas generadas, conviene observar la distribución tonal de las melodías guía. En este trabajo, "Overworld" se mueve aproximadamente entre los tonos 65 y 85, con un tono más frecuente alrededor de 73, mientras que "Let It Be" se concentra aproximadamente entre 53 y 73, con un pico cercano a 64. 
-
-En relación a la duración de las notas, en "Overworld" es posible considerar que todas tienen la misma duración de 0.095s, mientras que "Let It Be" presenta duraciones que varían, aproximadamente, entre los 0.20s y 2.75s, siendo las duraciones más frecuentes las de 0.50s o menos.
-
-Esta información permite interpretar luego si las melodías generadas por el algoritmo conservan parte del rango de ambas piezas o si se desplazan hacia una zona distinta.
-
-La comparación gráfica completa entre las dos piezas de entrada y la salida evolutiva se presenta más adelante en la Figura 11 (tonos) y Figura 13 (duraciones).
 
 ### Estrategias empleadas
 
@@ -675,3 +675,7 @@ Mas allá de lo mencionado anteriormente, el trabajo realizado pone en perspecti
 [8] S. Russell and P. Norvig, Artificial Intelligence: A Modern Approach, 4th ed.
 
 [9] [MIDI Protocol](https://en.wikipedia.org/wiki/MIDI)
+
+[10] [VGMusic](https://www.vgmusic.com/music/console/nintendo/nes/)
+
+[11] [FreeMidi.org](https://freemidi.org/)
